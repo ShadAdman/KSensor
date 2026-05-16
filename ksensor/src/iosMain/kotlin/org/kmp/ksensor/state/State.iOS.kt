@@ -6,7 +6,10 @@ import kotlinx.coroutines.flow.callbackFlow
 import platform.Foundation.NSNotificationCenter
 import platform.Foundation.NSOperationQueue
 import platform.Network.nw_path_monitor_create
+import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationDidEnterBackgroundNotification
+import platform.UIKit.UIApplicationProtectedDataDidBecomeAvailable
+import platform.UIKit.UIApplicationProtectedDataWillBecomeUnavailable
 import platform.UIKit.UIApplicationWillEnterForegroundNotification
 import platform.darwin.NSObject
 import org.kmp.ksensor.state.StateUpdate.Data
@@ -16,6 +19,8 @@ actual fun createController(): StateController = IOSStateHandler()
 internal class IOSStateHandler : StateController {
     private var foregroundObserver: NSObject? = null
     private var backgroundObserver: NSObject? = null
+    private var lockObserver: NSObject? = null
+    private var unlockObserver: NSObject? = null
     private val monitor = nw_path_monitor_create()
 
     private lateinit var locationProviderReceiver: LocationProviderReceiver
@@ -33,6 +38,7 @@ internal class IOSStateHandler : StateController {
                 StateType.VOLUME -> observeVolume { trySend(it).isSuccess }
                 StateType.LOCALE -> observeLocale { trySend(it).isSuccess }
                 StateType.BATTERY -> observeBattery { trySend(it) }
+                StateType.LOCK -> observeLockState { trySend(it).isSuccess }
             }.also {
                 println("Observer added for $stateType on iOS")
             }
@@ -61,6 +67,10 @@ internal class IOSStateHandler : StateController {
                 StateType.VOLUME -> volumeReceiver.removeObserver()
                 StateType.LOCALE -> localeReceiver?.removeObserver()
                 StateType.BATTERY -> batteryStateReceiver.removeObserver()
+                StateType.LOCK -> {
+                    lockObserver?.let { NSNotificationCenter.defaultCenter.removeObserver(it) }
+                    unlockObserver?.let { NSNotificationCenter.defaultCenter.removeObserver(it) }
+                }
             }.also {
                 println("Observer removed for $stateType on iOS")
             }
@@ -179,6 +189,48 @@ internal class IOSStateHandler : StateController {
                         false
                     ),
                     PlatformType.iOS
+                )
+            )
+        } as NSObject?
+    }
+
+    /**
+     * on iOS, the most reliable way to detect when a device is locked or unlocked
+     * is by observing the "protected data" availability.
+     */
+    private fun observeLockState(onData: (StateUpdate) -> Unit) {
+        onData(
+            Data(
+                type = StateType.LOCK,
+                data = StateData.LockStatus(!UIApplication.sharedApplication.isProtectedDataAvailable()),
+                platformType = PlatformType.iOS
+            )
+        )
+
+        lockObserver = NSNotificationCenter.defaultCenter.addObserverForName(
+            name = UIApplicationProtectedDataWillBecomeUnavailable,
+            `object` = null,
+            queue = NSOperationQueue.mainQueue()
+        ) {
+            onData(
+                Data(
+                    type = StateType.LOCK,
+                    data = StateData.LockStatus(true),
+                    platformType = PlatformType.iOS
+                )
+            )
+        } as NSObject?
+
+        unlockObserver = NSNotificationCenter.defaultCenter.addObserverForName(
+            name = UIApplicationProtectedDataDidBecomeAvailable,
+            `object` = null,
+            queue = NSOperationQueue.mainQueue()
+        ) {
+            onData(
+                Data(
+                    type = StateType.LOCK,
+                    data = StateData.LockStatus(false),
+                    platformType = PlatformType.iOS
                 )
             )
         } as NSObject?

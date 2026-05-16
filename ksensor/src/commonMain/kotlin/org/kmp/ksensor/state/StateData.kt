@@ -31,7 +31,7 @@ sealed class StateData {
         val isScreenOn: Boolean,
     ) : StateData()
 
-    data calss LockStatus(
+    data class LockStatus(
         val isLocked:Boolean
     ):StateData()
 
