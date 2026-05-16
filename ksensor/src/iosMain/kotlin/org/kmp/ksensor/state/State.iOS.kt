@@ -28,10 +28,11 @@ internal class IOSStateHandler : StateController {
     private val volumeReceiver = VolumeReceiver()
     private val batteryStateReceiver = BatteryStateReceiver()
     private var localeReceiver: LocaleReceiver? = null
+    private var screenStateReceiver: ScreenStateReceiver? = null
     override fun addObserver(types: List<StateType>): Flow<StateUpdate> = callbackFlow {
         types.forEach { stateType ->
             when (stateType) {
-                StateType.SCREEN -> trySend(Error(exception = Exception("iOS dos not have a convince way to check screen state")))
+                StateType.SCREEN -> observeScreenState { trySend(it).isSuccess }
                 StateType.APP_VISIBILITY -> observerAppVisibility { trySend(it).isSuccess }
                 StateType.CONNECTIVITY, StateType.ACTIVE_NETWORK -> observeConnectivity { trySend(it).isSuccess }
                 StateType.LOCATION -> observeLocation { trySend(it).isSuccess }
@@ -49,7 +50,7 @@ internal class IOSStateHandler : StateController {
     override fun removeObserver(types: List<StateType>) {
         types.forEach { stateType ->
             when (stateType) {
-                StateType.SCREEN -> println("iOS dos not have a convince way to check screen state")
+                StateType.SCREEN -> screenStateReceiver?.unregister()
                 StateType.APP_VISIBILITY -> {
                     foregroundObserver?.let {
                         NSNotificationCenter.defaultCenter.removeObserver(it)
@@ -79,6 +80,20 @@ internal class IOSStateHandler : StateController {
 
     private fun observeBattery(onData: (StateUpdate) -> Unit) {
         batteryStateReceiver.registerObserver(onData)
+    }
+
+    private fun observeScreenState(onData: (StateUpdate) -> Unit) {
+        val receiver = ScreenStateReceiver { isScreenOn ->
+            onData(
+                Data(
+                    type = StateType.SCREEN,
+                    data = StateData.ScreenStatus(isScreenOn),
+                    platformType = PlatformType.iOS
+                )
+            )
+        }
+        receiver.register()
+        screenStateReceiver = receiver
     }
 
     private fun observeLocale(onData: (StateUpdate) -> Unit) {
