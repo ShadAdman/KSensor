@@ -13,7 +13,7 @@ class ScreenStateReceiver(
         when (intent?.action) {
             Intent.ACTION_SCREEN_ON -> onScreenOn()
             Intent.ACTION_SCREEN_OFF -> onScreenOff()
-            Intent.ACTION_USER_PRESENT -> userPresent()
+            Intent.ACTION_USER_PRESENT -> onUserPresent()
         }
     }
 }
