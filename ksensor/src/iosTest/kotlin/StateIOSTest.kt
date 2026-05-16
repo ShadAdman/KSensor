@@ -18,6 +18,12 @@ class StateIOSTest {
     fun testScreenState(){
         assertStateObserver(StateType.SCREEN)
     }
+
+    @Test
+    fun testLockState(){
+        assertStateObserver(StateType.LOCK)
+    }
+
     @Test
     fun testConnectivityState(){
         assertStateObserver(StateType.CONNECTIVITY)

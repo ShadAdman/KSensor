@@ -19,6 +19,11 @@ class StateHandlerTest {
     }
 
     @Test
+    fun testLockState(){
+        assertObservingState(StateType.LOCK)
+        assertObserverRemoved(StateType.LOCK)
+    }
+    @Test
     fun testConnectivityState(){
         assertObservingState(StateType.CONNECTIVITY)
         assertObserverRemoved(StateType.CONNECTIVITY)
