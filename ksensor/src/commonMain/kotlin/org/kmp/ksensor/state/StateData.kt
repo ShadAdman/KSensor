@@ -13,7 +13,8 @@ enum class StateType {
     LOCATION,
     VOLUME,
     LOCALE,
-    BATTERY
+    BATTERY,
+    LOCK
 }
 
 
@@ -29,6 +30,10 @@ sealed class StateData {
     data class ScreenStatus(
         val isScreenOn: Boolean,
     ) : StateData()
+
+    data class LockStatus(
+        val isLocked:Boolean
+    ):StateData()
 
     data class CurrentActiveNetwork(val activeNetwork: ActiveNetwork) : StateData() {
         enum class ActiveNetwork {

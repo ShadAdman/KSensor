@@ -47,6 +47,7 @@ internal class AndroidStateHandler : StateController {
                 StateType.VOLUME -> observeVolume { trySend(it).isSuccess }
                 StateType.LOCALE -> observeLocale { trySend(it).isSuccess }
                 StateType.BATTERY -> observeBattery { trySend(it) }
+                StateType.LOCK -> observeLockState { trySend(it) }
             }.also {
                 println("Observer added for $stateType on Android")
             }
@@ -214,8 +215,48 @@ internal class AndroidStateHandler : StateController {
         activeStateObservers[StateType.APP_VISIBILITY] = observer
     }
 
+    /**
+     * when screen is off we check if device has a secure lock screen, only then we send true for lock state.
+     * ACTION_USER_PRESENT triggers when the user successfully unlocks the device and is present.
+     */
+    private fun observeLockState(onData:(StateUpdate)-> Unit){
+        val screenStateReceiver = ScreenStateReceiver(
+            onScreenOn = {},
+            onScreenOff = {
+                onData(
+                    StateUpdate.Data(
+                        StateType.LOCK,
+                        StateData.LockStatus(hasSecureLockScreen()),
+                        PlatformType.Android
+                    )
+                )
+            },
+            onUserPresent = {
+                onData(
+                    StateUpdate.Data(
+                        StateType.LOCK,
+                        StateData.LockStatus(false),
+                        PlatformType.Android
+                    )
+                )
+            }
+        )
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_SCREEN_OFF)
+            addAction(Intent.ACTION_USER_PRESENT)
+        }
+        context.registerReceiver(screenStateReceiver, filter)
+        activeStateObservers[StateType.LOCK] = screenStateReceiver
 
-    private fun observerScreenState(onData: (StateUpdate) -> Boolean) {
+
+        inline fun hasSecureLockScreen(): Boolean {
+            val keyguardManager = context.getSystemService(KeyguardManager::class.java)
+            return keyguardManager.isDeviceSecure
+        }
+    }
+
+
+    private fun observerScreenState(onData: (StateUpdate) -> Unit) {
         val screenStateReceiver = ScreenStateReceiver(
             onScreenOn = {
                 onData(
@@ -234,6 +275,9 @@ internal class AndroidStateHandler : StateController {
                         PlatformType.Android
                     )
                 )
+            },
+            onUserPresent = {
+
             }
         )
         val filter = IntentFilter().apply {
