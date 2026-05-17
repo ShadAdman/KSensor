@@ -32,7 +32,7 @@ sealed class StateData {
     ) : StateData()
 
     data class LockStatus(
-        val isLocked:Boolean
+        val isDeviceLocked:Boolean
     ):StateData()
 
     data class CurrentActiveNetwork(val activeNetwork: ActiveNetwork) : StateData() {
