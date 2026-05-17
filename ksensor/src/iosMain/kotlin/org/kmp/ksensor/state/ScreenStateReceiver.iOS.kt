@@ -1,16 +1,18 @@
 package org.kmp.ksensor.state
 
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.IntVar
+import kotlinx.cinterop.ULongVar
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.value
-import platform.darwin.IntVar
-import platform.darwin.LongVar
 import platform.darwin.dispatch_get_main_queue
 import platform.darwin.notify_cancel
 import platform.darwin.notify_get_state
 import platform.darwin.notify_register_dispatch
 
+@OptIn(ExperimentalForeignApi::class)
 internal class ScreenStateReceiver(private val onStateChanged: (Boolean) -> Unit) {
     private var registrationToken: Int = 0
 
@@ -23,24 +25,24 @@ internal class ScreenStateReceiver(private val onStateChanged: (Boolean) -> Unit
                 "com.apple.springboard.hasBlankedScreen",
                 outToken.ptr,
                 dispatch_get_main_queue()
-            ) { token ->
+            ) { token: Int ->
                 val state = memScoped {
-                    val outState = alloc<LongVar>()
+                    val outState = alloc<ULongVar>()
                     notify_get_state(token, outState.ptr)
                     outState.value
                 }
                 // state == 1 means screen is blanked (OFF)
                 // state == 0 means screen is ON
-                onStateChanged(state == 0L)
+                onStateChanged(state == 0uL)
             }
-            if (status == 0) {
+            if (status == 0u) {
                 registrationToken = outToken.value
                 val state = memScoped {
-                    val outState = alloc<LongVar>()
+                    val outState = alloc<ULongVar>()
                     notify_get_state(registrationToken, outState.ptr)
                     outState.value
                 }
-                onStateChanged(state == 0L)
+                onStateChanged(state == 0uL)
             }
         }
     }
