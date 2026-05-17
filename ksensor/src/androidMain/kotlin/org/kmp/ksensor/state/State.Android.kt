@@ -31,6 +31,8 @@ internal class AndroidStateHandler : StateController {
     private val locationManager =
         context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
+    val keyguardManager = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+
     private lateinit var connectivityMonitor: ConnectivityMonitor
     private val activeStateObservers = mutableMapOf<StateType, Any>()
 
@@ -226,7 +228,7 @@ internal class AndroidStateHandler : StateController {
                 onData(
                     StateUpdate.Data(
                         StateType.LOCK,
-                        StateData.LockStatus(hasSecureLockScreen()),
+                        StateData.LockStatus(keyguardManager.isDeviceSecure),
                         PlatformType.Android
                     )
                 )
@@ -248,11 +250,6 @@ internal class AndroidStateHandler : StateController {
         context.registerReceiver(screenStateReceiver, filter)
         activeStateObservers[StateType.LOCK] = screenStateReceiver
 
-
-        inline fun hasSecureLockScreen(): Boolean {
-            val keyguardManager = context.getSystemService(KeyguardManager::class.java)
-            return keyguardManager.isDeviceSecure
-        }
     }
 
 
