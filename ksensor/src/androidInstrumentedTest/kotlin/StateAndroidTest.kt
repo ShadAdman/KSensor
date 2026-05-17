@@ -31,12 +31,18 @@ class StateAndroidTest {
         assertStateObserver(StateType.LOCATION)
     }
     @Test
+    fun testBatteryState(){
+        assertStateObserver(StateType.BATTERY)
+    }
+    @Test
     fun testLocalState(){
         assertStateObserver(StateType.LOCALE)
     }
+
+
     @Test
-    fun testBatteryState(){
-        assertStateObserver(StateType.BATTERY)
+    fun testLockState(){
+        assertStateObserver(StateType.LOCK)
     }
 
     private fun assertStateObserver(stateType: StateType) = runBlocking {

@@ -10,7 +10,7 @@
 Add it in your `commonMain.dependencies` :
 
   ```
-  implementation("io.github.shadmanadman:KSensor:2.0.4")
+  implementation("io.github.shadmanadman:KSensor:2.10.4")
   ```
 
 ### Sensors Observation
@@ -80,7 +80,8 @@ StateType.LOCATION,
 StateType.SCREEN_STATE
 StateType.VOLUME,
 StateType.LOCALE,
-StateType.BATTERY)
+StateType.BATTERY,
+StateType.LOCK)
 ```
 
 - Add observers.
@@ -107,6 +108,7 @@ Each `StateUpdate` has a `platformType` so you know the state data comes from An
 - AppVisibilityStatus(val isAppVisible: Boolean)
 - LocationStatus(val isLocationOn: Boolean)
 - ScreenStatus(val isScreenOn: Boolean)
+- LockStatus(val isDeviceLocked: Boolean)
 - CurrentActiveNetwork(val activeNetwork: ActiveNetwork)
 - ConnectivityStatus(val isConnected: Boolean)
 - VolumeStatus(val volumePercentage: Int)
