@@ -19,6 +19,7 @@ enum class SensorType {
     MAGNETOMETER,
     BAROMETER,
     STEP_COUNTER,
+    STEP_DETECTOR,
     LOCATION,
     DEVICE_ORIENTATION,
     PROXIMITY,
@@ -44,6 +45,8 @@ sealed class SensorData() {
 
     data class Barometer(val pressure: Float) : SensorData()
     data class StepCounter(val steps: Int) : SensorData()
+    data object StepDetector : SensorData()
+
     data class Location(
         val latitude: Double? = null,
         val longitude: Double? = null,
