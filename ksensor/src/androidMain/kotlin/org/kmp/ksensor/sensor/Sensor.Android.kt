@@ -66,6 +66,7 @@ internal class AndroidSensorHandler : SensorController {
                 SensorType.PROXIMITY -> registerProximity { trySend(it) }
                 SensorType.LIGHT -> registerLight { trySend(it) }
                 SensorType.TOUCH_GESTURES -> registerTouchGestures { trySend(it) }
+                SensorType.STEP_DETECTOR -> registerStepDetector { trySend(it) }
             }.also {
                 println("Sensor registered for $sensorType on Android")
             }
@@ -218,6 +219,26 @@ internal class AndroidSensorHandler : SensorController {
             sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL,sensorListenerHandler)
             activeSensorListeners[SensorType.STEP_COUNTER] = listener
         } ?: println("Step counter not available")
+    }
+
+    private fun registerStepDetector(onData: (SensorUpdate) -> Unit) {
+        val listener = object : SensorEventListener {
+            override fun onSensorChanged(event: SensorEvent) {
+                onData(
+                    SensorUpdate.Data(
+                        SensorType.STEP_DETECTOR,
+                        StepDetector,
+                        PlatformType.Android
+                    )
+                )
+            }
+
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+        }
+        sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR).also {
+            sensorManager.registerListener(listener, it, SENSOR_DELAY_NORMAL,sensorListenerHandler)
+            activeSensorListeners[SensorType.STEP_DETECTOR] = listener
+        } ?: println("Step detector not available")
     }
 
 
