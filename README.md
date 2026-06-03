@@ -10,7 +10,7 @@
 Add it in your `commonMain.dependencies` :
 
   ```
-  implementation("io.github.shadmanadman:KSensor:2.10.7")
+  implementation("io.github.shadmanadman:KSensor:2.20.0")
   ```
 
 ### Sensors Observation
@@ -24,6 +24,7 @@ SensorType.GYROSCOPE,
 SensorType.MAGNETOMETER,
 SensorType.BAROMETER,
 SensorType.STEP_COUNTER,
+SensorType.STEP_DETECTOR,
 SensorType.LOCATION,
 SensorType.DEVICE_ORIENTATION,
 SensorType.PROXIMITY,
@@ -60,6 +61,7 @@ Gyroscope(val x: Float, val y: Float, val z: Float)
 Magnetometer(val x: Float, val y: Float, val z: Float)
 Barometer(val pressure: Float)
 StepCounter(val steps: Int)
+StepDetector()
 Location(val lat: Double? = null, val lon: Double? = null, val alt: Double? = null)
 Orientation(val orientation: DeviceOrientation,val orientationInt: Int = 0)
 Proximity(val distanceInCM: Float, val isNear: Boolean)
