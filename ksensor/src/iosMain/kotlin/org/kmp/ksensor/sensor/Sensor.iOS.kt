@@ -71,6 +71,7 @@ internal class iOSSensorController : SensorController {
                 SensorType.PROXIMITY -> registerProximity { trySend(it) }
                 SensorType.LIGHT -> registerLight { trySend(it) }
                 SensorType.TOUCH_GESTURES -> registerTouchGestures { trySend(it) }
+                SensorType.STEP_DETECTOR-> registerStepDetector { trySend(it) }
             }.also {
                 println("Sensor registered for $sensorType on iOS")
             }
@@ -87,6 +88,7 @@ internal class iOSSensorController : SensorController {
                 SensorType.MAGNETOMETER -> motionManager.stopMagnetometerUpdates()
                 SensorType.BAROMETER -> altimeter?.stopRelativeAltitudeUpdates()
                 SensorType.STEP_COUNTER -> pedometer?.stopPedometerUpdates()
+                SensorType.STEP_DETECTOR -> pedometer?.stopPedometerUpdates()
                 SensorType.LOCATION -> locationManager.stopUpdatingLocation()
                 SensorType.DEVICE_ORIENTATION -> {
                     orientationObserver?.let {
@@ -219,6 +221,20 @@ internal class iOSSensorController : SensorController {
                     SensorUpdate.Data(
                         SensorType.STEP_COUNTER,
                         SensorData.StepCounter(steps),
+                        PlatformType.iOS
+                    )
+                )
+            }
+        }
+    }
+
+    private fun registerStepDetector(onData: (SensorUpdate) -> Unit) {
+        pedometer?.startPedometerUpdatesFromDate(NSDate()) { data, _ ->
+            data?.let {
+                onData(
+                    SensorUpdate.Data(
+                        SensorType.STEP_DETECTOR,
+                        SensorData.StepDetector,
                         PlatformType.iOS
                     )
                 )
