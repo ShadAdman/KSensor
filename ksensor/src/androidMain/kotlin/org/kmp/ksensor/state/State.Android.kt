@@ -73,6 +73,7 @@ internal class AndroidStateHandler : StateController {
                 is VolumeReceiver -> context.unregisterReceiver(listener)
                 is LocaleReceiver -> context.unregisterReceiver(listener)
                 is BatteryStateReceiver -> context.unregisterReceiver(listener)
+                is BleConnectionReceiver -> listener.unregister()
                 else -> println("Observer not found for $stateType on Android")
             }.also {
                 println("Observer removed for $stateType on Android")
@@ -288,22 +289,9 @@ internal class AndroidStateHandler : StateController {
     }
 
     private fun observeBleConnection(onData: (StateUpdate) -> Unit) {
-        // Mocking BLE connection state for Android
-        onData(
-            StateUpdate.Data(
-                type = StateType.BLE_CONNECTION,
-                data = StateData.BleConnectionStatus(
-                    connectedDevices = listOf(
-                        StateData.BleDevice(
-                            id = "00:11:22:33:44:55",
-                            name = "Mock Android BLE Device"
-                        )
-                    )
-                ),
-                platformType = PlatformType.Android
-            )
-        )
-        activeStateObservers[StateType.BLE_CONNECTION] = object {}
+        val bleReceiver = BleConnectionReceiver(context, onData)
+        bleReceiver.register()
+        activeStateObservers[StateType.BLE_CONNECTION] = bleReceiver
     }
 
     @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
