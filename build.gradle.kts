@@ -7,4 +7,5 @@ plugins {
     alias(libs.plugins.composeCompiler) apply false
     alias(libs.plugins.kotlinMultiplatform) apply false
     id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
+    alias(libs.plugins.kmmbridge) apply false
 }

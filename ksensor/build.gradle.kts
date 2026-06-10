@@ -4,8 +4,11 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.vanniktechPublish)
+    alias(libs.plugins.kmmbridge)
     id("signing")
 }
+
+version = libs.versions.snapshotVersion.get()
 
 kotlin {
     androidTarget {
@@ -109,4 +112,10 @@ signing {
         key,
         keyPassword
     )
+}
+
+kmmbridge {
+    frameworkName.set("ksensor")
+    spm()
+    gitHubReleaseArtifacts()
 }

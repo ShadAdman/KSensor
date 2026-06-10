@@ -12,6 +12,7 @@ startup = "1.2.0"
 kotlin = "2.2.0"
 accompanist-permissions = "0.32.0"
 vanniktech-publish = "0.34.0"
+kmmbridge = "1.2.1"
 groupId = "io.github.shadmanadman"
 artifactId = "KSensor"
 snapshotVersion = "2.0.27-SNAPSHOT"
@@ -34,3 +35,4 @@ composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "compose-mu
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 vanniktechPublish = {id = "com.vanniktech.maven.publish", version.ref = "vanniktech-publish"}
+kmmbridge = { id = "co.touchlab.kmmbridge.github", version.ref = "kmmbridge" }
