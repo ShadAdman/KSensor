@@ -67,6 +67,7 @@ internal class AndroidSensorHandler : SensorController {
                 SensorType.LIGHT -> registerLight { trySend(it) }
                 SensorType.TOUCH_GESTURES -> registerTouchGestures { trySend(it) }
                 SensorType.STEP_DETECTOR -> registerStepDetector { trySend(it) }
+                SensorType.BLE_CONNECTION -> registerBleConnection { trySend(it) }
             }.also {
                 println("Sensor registered for $sensorType on Android")
             }
@@ -380,6 +381,21 @@ internal class AndroidSensorHandler : SensorController {
     private fun registerTouchGestures(onData: (SensorUpdate) -> Unit) {
         touchGestureMonitor.registerObserver(onData)
         activeSensorListeners[SensorType.TOUCH_GESTURES] = touchGestureMonitor
+    }
+
+    private fun registerBleConnection(onData: (SensorUpdate) -> Unit) {
+        // Mocking BLE connection update for now
+        onData(
+            SensorUpdate.Data(
+                type = SensorType.BLE_CONNECTION,
+                data = BleConnection(
+                    id = "00:11:22:33:44:55",
+                    name = "Mock Android BLE Device"
+                ),
+                platformType = PlatformType.Android
+            )
+        )
+        activeSensorListeners[SensorType.BLE_CONNECTION] = object {}
     }
 }
 
