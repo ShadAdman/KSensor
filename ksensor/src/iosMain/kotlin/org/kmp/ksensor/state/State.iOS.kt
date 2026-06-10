@@ -27,6 +27,7 @@ internal class IOSStateHandler : StateController {
     private val connectivityMonitor = ConnectivityMonitor
     private val volumeReceiver = VolumeReceiver()
     private val batteryStateReceiver = BatteryStateReceiver()
+    private var bleConnectionReceiver: BleConnectionReceiver? = null
     private var localeReceiver: LocaleReceiver? = null
     private var screenStateReceiver: ScreenStateReceiver? = null
     override fun addObserver(types: List<StateType>): Flow<StateUpdate> = callbackFlow {
@@ -73,7 +74,11 @@ internal class IOSStateHandler : StateController {
                     lockObserver?.let { NSNotificationCenter.defaultCenter.removeObserver(it) }
                     unlockObserver?.let { NSNotificationCenter.defaultCenter.removeObserver(it) }
                 }
-                StateType.BLE_CONNECTION -> println("Stop BLE connection updates")
+
+                StateType.BLE_CONNECTION -> {
+                    bleConnectionReceiver?.unregister()
+                    bleConnectionReceiver = null
+                }
             }.also {
                 println("Observer removed for $stateType on iOS")
             }
@@ -254,19 +259,8 @@ internal class IOSStateHandler : StateController {
     }
 
     private fun observeBleConnection(onData: (StateUpdate) -> Boolean) {
-        onData(
-            Data(
-                type = StateType.BLE_CONNECTION,
-                data = StateData.BleConnectionStatus(
-                    connectedDevices = listOf(
-                        StateData.BleDevice(
-                            id = "EE:DD:CC:BB:AA:00",
-                            name = "Mock iOS BLE Device"
-                        )
-                    )
-                ),
-                platformType = PlatformType.iOS
-            )
-        )
+        val receiver = BleConnectionReceiver { onData(it) }
+        receiver.register()
+        bleConnectionReceiver = receiver
     }
 }
