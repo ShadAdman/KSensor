@@ -40,6 +40,7 @@ internal class IOSStateHandler : StateController {
                 StateType.LOCALE -> observeLocale { trySend(it).isSuccess }
                 StateType.BATTERY -> observeBattery { trySend(it) }
                 StateType.LOCK -> observeLockState { trySend(it).isSuccess }
+                StateType.BLE_CONNECTION -> observeBleConnection { trySend(it).isSuccess }
             }.also {
                 println("Observer added for $stateType on iOS")
             }
@@ -72,6 +73,7 @@ internal class IOSStateHandler : StateController {
                     lockObserver?.let { NSNotificationCenter.defaultCenter.removeObserver(it) }
                     unlockObserver?.let { NSNotificationCenter.defaultCenter.removeObserver(it) }
                 }
+                StateType.BLE_CONNECTION -> println("Stop BLE connection updates")
             }.also {
                 println("Observer removed for $stateType on iOS")
             }
@@ -249,5 +251,22 @@ internal class IOSStateHandler : StateController {
                 )
             )
         } as NSObject?
+    }
+
+    private fun observeBleConnection(onData: (StateUpdate) -> Boolean) {
+        onData(
+            Data(
+                type = StateType.BLE_CONNECTION,
+                data = StateData.BleConnectionStatus(
+                    connectedDevices = listOf(
+                        StateData.BleDevice(
+                            id = "EE:DD:CC:BB:AA:00",
+                            name = "Mock iOS BLE Device"
+                        )
+                    )
+                ),
+                platformType = PlatformType.iOS
+            )
+        )
     }
 }

@@ -51,6 +51,7 @@ internal class AndroidStateHandler : StateController {
                 StateType.LOCALE -> observeLocale { trySend(it).isSuccess }
                 StateType.BATTERY -> observeBattery { trySend(it) }
                 StateType.LOCK -> observeLockState { trySend(it) }
+                StateType.BLE_CONNECTION -> observeBleConnection { trySend(it) }
             }.also {
                 println("Observer added for $stateType on Android")
             }
@@ -284,6 +285,25 @@ internal class AndroidStateHandler : StateController {
         }
         context.registerReceiver(screenStateReceiver, filter)
         activeStateObservers[StateType.SCREEN] = screenStateReceiver
+    }
+
+    private fun observeBleConnection(onData: (StateUpdate) -> Unit) {
+        // Mocking BLE connection state for Android
+        onData(
+            StateUpdate.Data(
+                type = StateType.BLE_CONNECTION,
+                data = StateData.BleConnectionStatus(
+                    connectedDevices = listOf(
+                        StateData.BleDevice(
+                            id = "00:11:22:33:44:55",
+                            name = "Mock Android BLE Device"
+                        )
+                    )
+                ),
+                platformType = PlatformType.Android
+            )
+        )
+        activeStateObservers[StateType.BLE_CONNECTION] = object {}
     }
 
     @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
