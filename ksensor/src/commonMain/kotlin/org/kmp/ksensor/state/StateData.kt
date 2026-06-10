@@ -14,7 +14,8 @@ enum class StateType {
     VOLUME,
     LOCALE,
     BATTERY,
-    LOCK
+    LOCK,
+    BLE_CONNECTION
 }
 
 
@@ -65,4 +66,7 @@ sealed class StateData {
         enum class ChargingState { UNKNOWN, DISCHARGING, CHARGING, FULL }
         enum class BatteryHealth { UNKNOWN, GOOD, OVERHEAT, DEAD, OVER_VOLTAGE, UNSPECIFIED_FAILURE, COLD }
     }
+
+    data class BleDevice(val id: String, val name: String)
+    data class BleConnectionStatus(val connectedDevices: List<BleDevice>) : StateData()
 }
