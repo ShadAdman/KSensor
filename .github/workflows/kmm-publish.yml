@@ -1,0 +1,29 @@
+name: KMMBridge Publish
+on:
+  workflow_dispatch:
+
+jobs:
+  kmmbridge-publish:
+    runs-on: macOS-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Publish KMMBridge
+        env:
+          GITHUB_PUBLISH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew kmmBridgePublish -PENABLE_PUBLISHING=true --no-configuration-cache
