@@ -24,8 +24,7 @@ enum class SensorType {
     DEVICE_ORIENTATION,
     PROXIMITY,
     LIGHT,
-    TOUCH_GESTURES,
-    BLE_CONNECTION
+    TOUCH_GESTURES
 }
 
 sealed class SensorData() {
@@ -69,6 +68,4 @@ sealed class SensorData() {
     ): SensorData()
 
     data class TouchGestures(val x: Float,val y: Float,val type: TouchGestureType): SensorData()
-
-    data class BleConnection(val id: String, val name: String) : SensorData()
 }

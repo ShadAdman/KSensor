@@ -10,7 +10,6 @@ import org.kmp.ksensor.permission.PermissionStatus
 import org.kmp.ksensor.permission.PermissionType
 import org.kmp.ksensor.permission.createPermissionHandler
 import org.kmp.ksensor.sensor.SensorData.Accelerometer
-import org.kmp.ksensor.sensor.SensorData.BleConnection
 import org.kmp.ksensor.sensor.SensorData.Gyroscope
 import org.kmp.ksensor.sensor.SensorData.LightIlluminance
 import org.kmp.ksensor.sensor.SensorData.Location
@@ -73,7 +72,6 @@ internal class iOSSensorController : SensorController {
                 SensorType.LIGHT -> registerLight { trySend(it) }
                 SensorType.TOUCH_GESTURES -> registerTouchGestures { trySend(it) }
                 SensorType.STEP_DETECTOR-> registerStepDetector { trySend(it) }
-                SensorType.BLE_CONNECTION -> registerBleConnection { trySend(it) }
             }.also {
                 println("Sensor registered for $sensorType on iOS")
             }
@@ -112,7 +110,6 @@ internal class iOSSensorController : SensorController {
                 }
 
                 SensorType.TOUCH_GESTURES -> touchGesturesMonitor.removeObserver()
-                SensorType.BLE_CONNECTION -> println("Stop BLE connection updates")
             }.also {
                 println("Sensor unregistered for $types on iOS")
             }
@@ -380,19 +377,5 @@ internal class iOSSensorController : SensorController {
 
     private fun registerTouchGestures(onData: (SensorUpdate) -> Unit) {
         touchGesturesMonitor.registerObserver(onData)
-    }
-
-    private fun registerBleConnection(onData: (SensorUpdate) -> Unit) {
-        // Mocking BLE connection update for now
-        onData(
-            Data(
-                type = SensorType.BLE_CONNECTION,
-                data = BleConnection(
-                    id = "EE:DD:CC:BB:AA:00",
-                    name = "Mock iOS BLE Device"
-                ),
-                PlatformType.iOS
-            )
-        )
     }
 }
