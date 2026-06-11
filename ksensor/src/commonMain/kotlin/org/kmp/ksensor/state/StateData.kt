@@ -67,6 +67,7 @@ sealed class StateData {
         enum class BatteryHealth { UNKNOWN, GOOD, OVERHEAT, DEAD, OVER_VOLTAGE, UNSPECIFIED_FAILURE, COLD }
     }
 
-    data class BleDevice(val id: String, val name: String)
-    data class BleConnectionStatus(val connectedDevices: List<BleDevice>) : StateData()
+    data class BleConnectionStatus(val connectedDevices: List<BleDevice>) : StateData(){
+        data class BleDevice(val id: String, val name: String)
+    }
 }
