@@ -2,7 +2,9 @@
 [![Gradle](https://img.shields.io/badge/Gradle-8.x-green.svg?style=flat-square&logo=gradle)](https://gradle.org/)
 [![License](https://img.shields.io/badge/License-0BSD-informational.svg)](https://opensource.org/licenses/0BSD)
 
-![](KSensor.png)
+<p align="center">
+  <img src="KSensor.jpg" alt="ksensor Poster" width="600" style="border-radius: 50%;"/>
+</p>
 
 ## Getting Started
 ### Adding dependencies
@@ -10,7 +12,7 @@
 Add it in your `commonMain.dependencies` :
 
   ```
-  implementation("io.github.shadmanadman:KSensor:2.20.0")
+  implementation("io.github.shadmanadman:KSensor:3.60.0")
   ```
 
 ### Sensors Observation
@@ -83,7 +85,8 @@ StateType.SCREEN_STATE
 StateType.VOLUME,
 StateType.LOCALE,
 StateType.BATTERY,
-StateType.LOCK)
+StateType.LOCK,
+StateType.BLE_CONNECTION)
 ```
 
 - Add observers.
@@ -130,6 +133,9 @@ Each `StateUpdate` has a `platformType` so you know the state data comes from An
         enum class ChargingState { UNKNOWN, DISCHARGING, CHARGING, FULL }
         enum class BatteryHealth { UNKNOWN, GOOD, OVERHEAT, DEAD, OVER_VOLTAGE, UNSPECIFIED_FAILURE, COLD }
   }
+- data class BleConnectionStatus(val connectedDevices: List<BleDevice>) : StateData(){
+        data class BleDevice(val id: String, val name: String)
+    }
 ```
 
 
