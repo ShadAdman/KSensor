@@ -5,6 +5,7 @@ import org.kmp.ksensor.state.StateType
 import org.kmp.ksensor.state.StateUpdate
 import kotlin.test.Test
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
 
 const val WAIT_FOR_STATE_DATA = 2000L
 
@@ -43,6 +44,11 @@ class StateIOSTest {
         assertStateObserver(StateType.BATTERY)
     }
 
+    @Test
+    fun testBleConnectionsState(){
+        assertStateObserver(StateType.BLE_CONNECTION)
+    }
+
     private fun assertStateObserver(stateType: StateType) = runBlocking {
         val stateHandler = IOSStateHandler()
         var called = false
@@ -63,7 +69,7 @@ class StateIOSTest {
             }
         }
 
-        delay(WAIT_FOR_STATE_DATA)
+        delay(WAIT_FOR_STATE_DATA.milliseconds)
 
         stateHandler.removeObserver(listOf(stateType))
 
