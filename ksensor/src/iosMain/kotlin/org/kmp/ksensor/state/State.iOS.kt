@@ -28,6 +28,7 @@ internal class IOSStateHandler : StateController {
     private val volumeReceiver = VolumeReceiver()
     private val batteryStateReceiver = BatteryStateReceiver()
     private var bleConnectionReceiver: BleConnectionReceiver? = null
+    private var bleDiscoversReceiver: BleDiscoversReceiver? = null
     private var localeReceiver: LocaleReceiver? = null
     private var screenStateReceiver: ScreenStateReceiver? = null
     override fun addObserver(types: List<StateType>): Flow<StateUpdate> = callbackFlow {
@@ -42,6 +43,7 @@ internal class IOSStateHandler : StateController {
                 StateType.BATTERY -> observeBattery { trySend(it) }
                 StateType.LOCK -> observeLockState { trySend(it).isSuccess }
                 StateType.BLE_CONNECTION -> observeBleConnection { trySend(it).isSuccess }
+                StateType.BLE_DISCOVERS -> observeBleDiscovers { trySend(it).isSuccess }
             }.also {
                 println("Observer added for $stateType on iOS")
             }
@@ -78,6 +80,11 @@ internal class IOSStateHandler : StateController {
                 StateType.BLE_CONNECTION -> {
                     bleConnectionReceiver?.unregister()
                     bleConnectionReceiver = null
+                }
+
+                StateType.BLE_DISCOVERS -> {
+                    bleDiscoversReceiver?.unregister()
+                    bleDiscoversReceiver = null
                 }
             }.also {
                 println("Observer removed for $stateType on iOS")
@@ -262,5 +269,11 @@ internal class IOSStateHandler : StateController {
         val receiver = BleConnectionReceiver { onData(it) }
         receiver.register()
         bleConnectionReceiver = receiver
+    }
+
+    private fun observeBleDiscovers(onData: (StateUpdate) -> Boolean) {
+        val receiver = BleDiscoversReceiver { onData(it) }
+        receiver.register()
+        bleDiscoversReceiver = receiver
     }
 }
