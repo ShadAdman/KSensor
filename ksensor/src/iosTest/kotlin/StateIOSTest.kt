@@ -49,6 +49,11 @@ class StateIOSTest {
         assertStateObserver(StateType.BLE_CONNECTION)
     }
 
+    @Test
+    fun testBleDiscoversState(){
+        assertStateObserver(StateType.BLE_DISCOVERS)
+    }
+
     private fun assertStateObserver(stateType: StateType) = runBlocking {
         val stateHandler = IOSStateHandler()
         var called = false
