@@ -1,0 +1,39 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "dependencyDashboard": true,
+  "labels": ["dependencies"],
+  "packageRules": [
+    {
+      "matchPackagePatterns": [
+        "org.jetbrains.kotlin.*",
+        "org.jetbrains.kotlin:*"
+      ],
+      "groupName": "kotlin"
+    },
+    {
+      "matchPackagePatterns": [
+        "com.android.tools.build:gradle",
+        "com.android.application",
+        "com.android.library"
+      ],
+      "groupName": "android-gradle-plugin"
+    },
+    {
+      "matchPackagePatterns": [
+        "org.jetbrains.compose.*",
+        "org.jetbrains.compose:*"
+      ],
+      "groupName": "compose-multiplatform"
+    },
+    {
+      "matchPackagePatterns": [
+        "androidx.test.*",
+        "androidx.test:*"
+      ],
+      "groupName": "androidx-test"
+    }
+  ]
+}
