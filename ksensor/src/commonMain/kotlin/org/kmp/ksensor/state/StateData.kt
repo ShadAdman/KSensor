@@ -15,7 +15,7 @@ enum class StateType {
     LOCALE,
     BATTERY,
     LOCK,
-    BLE_CONNECTION,
+    BLE_CONNECTIONS,
     BLE_DISCOVERS
 }
 

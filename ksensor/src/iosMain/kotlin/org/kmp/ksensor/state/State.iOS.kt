@@ -42,7 +42,7 @@ internal class IOSStateHandler : StateController {
                 StateType.LOCALE -> observeLocale { trySend(it).isSuccess }
                 StateType.BATTERY -> observeBattery { trySend(it) }
                 StateType.LOCK -> observeLockState { trySend(it).isSuccess }
-                StateType.BLE_CONNECTION -> observeBleConnection { trySend(it).isSuccess }
+                StateType.BLE_CONNECTIONS -> observeBleConnection { trySend(it).isSuccess }
                 StateType.BLE_DISCOVERS -> observeBleDiscovers { trySend(it).isSuccess }
             }.also {
                 println("Observer added for $stateType on iOS")
@@ -77,7 +77,7 @@ internal class IOSStateHandler : StateController {
                     unlockObserver?.let { NSNotificationCenter.defaultCenter.removeObserver(it) }
                 }
 
-                StateType.BLE_CONNECTION -> {
+                StateType.BLE_CONNECTIONS -> {
                     bleConnectionReceiver?.unregister()
                     bleConnectionReceiver = null
                 }

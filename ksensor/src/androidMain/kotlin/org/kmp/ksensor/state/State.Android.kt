@@ -51,7 +51,7 @@ internal class AndroidStateHandler : StateController {
                 StateType.LOCALE -> observeLocale { trySend(it).isSuccess }
                 StateType.BATTERY -> observeBattery { trySend(it) }
                 StateType.LOCK -> observeLockState { trySend(it) }
-                StateType.BLE_CONNECTION -> observeBleConnection { trySend(it) }
+                StateType.BLE_CONNECTIONS -> observeBleConnection { trySend(it) }
                 StateType.BLE_DISCOVERS -> observeBleDiscovers { trySend(it) }
             }.also {
                 println("Observer added for $stateType on Android")
@@ -293,7 +293,7 @@ internal class AndroidStateHandler : StateController {
     private fun observeBleConnection(onData: (StateUpdate) -> Unit) {
         val bleReceiver = BleConnectionReceiver(context, onData)
         bleReceiver.register()
-        activeStateObservers[StateType.BLE_CONNECTION] = bleReceiver
+        activeStateObservers[StateType.BLE_CONNECTIONS] = bleReceiver
     }
 
     private fun observeBleDiscovers(onData: (StateUpdate) -> Unit) {

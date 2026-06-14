@@ -48,7 +48,7 @@ class StateAndroidTest {
 
     @Test
     fun testBleConnectionsState(){
-        assertStateObserver(StateType.BLE_CONNECTION)
+        assertStateObserver(StateType.BLE_CONNECTIONS)
     }
 
     @Test

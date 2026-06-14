@@ -45,7 +45,7 @@ internal class BleConnectionReceiver(
 
         onData(
             StateUpdate.Data(
-                type = StateType.BLE_CONNECTION,
+                type = StateType.BLE_CONNECTIONS,
                 data = StateData.BleConnectionStatus(devices),
                 platformType = PlatformType.iOS
             )
