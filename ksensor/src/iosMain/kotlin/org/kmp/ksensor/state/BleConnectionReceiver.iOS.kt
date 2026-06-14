@@ -37,7 +37,7 @@ internal class BleConnectionReceiver(
 
     private fun emitCurrentState() {
         val devices = connectedPeripherals.map { peripheral ->
-            StateData.BleConnectionStatus.BleDevice(
+            BleDevice(
                 id = peripheral.identifier.UUIDString,
                 name = peripheral.name ?: "Unknown Device"
             )

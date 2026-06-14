@@ -15,9 +15,11 @@ enum class StateType {
     LOCALE,
     BATTERY,
     LOCK,
-    BLE_CONNECTION
+    BLE_CONNECTION,
+    BLE_DISCOVERS
 }
 
+data class BleDevice(val id: String, val name: String)
 
 sealed class StateData {
     data class AppVisibilityStatus(
@@ -67,7 +69,7 @@ sealed class StateData {
         enum class BatteryHealth { UNKNOWN, GOOD, OVERHEAT, DEAD, OVER_VOLTAGE, UNSPECIFIED_FAILURE, COLD }
     }
 
-    data class BleConnectionStatus(val connectedDevices: List<BleDevice>) : StateData(){
-        data class BleDevice(val id: String, val name: String)
-    }
+    data class BleConnectionStatus(val connectedDevices: List<BleDevice>) : StateData()
+
+    data class BleDiscoversStatus(val discoveredDevices: List<BleDevice>) : StateData()
 }
