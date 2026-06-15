@@ -113,12 +113,13 @@ internal class AndroidSensorHandler : SensorController {
                 onData(
                     SensorUpdate.Data(
                         SensorType.ACCELEROMETER,
-                        SensorData.Accelerometer(
+                        Accelerometer(
                             event.values[0] / maximumRange,
                             event.values[1] / maximumRange,
                             event.values[2] / maximumRange
                         ),
-                        PlatformType.Android
+                        PlatformType.Android,
+                        System.currentTimeMillis()
                     )
                 )
             }
@@ -136,12 +137,14 @@ internal class AndroidSensorHandler : SensorController {
             override fun onSensorChanged(event: SensorEvent) {
                 onData(
                     SensorUpdate.Data(
-                        type = SensorType.GYROSCOPE, data = Gyroscope(
+                        type = SensorType.GYROSCOPE,
+                        data = Gyroscope(
                             event.values[0],
                             event.values[1],
                             event.values[2]
                         ),
-                        PlatformType.Android
+                        platformType = PlatformType.Android,
+                        timestamp = System.currentTimeMillis()
                     )
                 )
             }
@@ -163,9 +166,10 @@ internal class AndroidSensorHandler : SensorController {
                         Magnetometer(
                             event.values[0],
                             event.values[1],
-                            event.values[2],
+                            event.values[2]
                         ),
-                        PlatformType.Android
+                        PlatformType.Android,
+                        System.currentTimeMillis()
                     )
                 )
             }
@@ -183,10 +187,12 @@ internal class AndroidSensorHandler : SensorController {
             override fun onSensorChanged(event: SensorEvent) {
                 onData(
                     SensorUpdate.Data(
-                        SensorType.BAROMETER, Barometer(
-                            event.values[0],
+                        SensorType.BAROMETER,
+                        Barometer(
+                            event.values[0]
                         ),
-                        PlatformType.Android
+                        PlatformType.Android,
+                        System.currentTimeMillis()
                     )
                 )
             }
@@ -208,7 +214,8 @@ internal class AndroidSensorHandler : SensorController {
                         StepCounter(
                             event.values[0].toInt()
                         ),
-                        PlatformType.Android
+                        PlatformType.Android,
+                        System.currentTimeMillis()
                     )
                 )
             }
@@ -228,7 +235,8 @@ internal class AndroidSensorHandler : SensorController {
                     SensorUpdate.Data(
                         SensorType.STEP_DETECTOR,
                         StepDetector,
-                        PlatformType.Android
+                        PlatformType.Android,
+                        System.currentTimeMillis()
                     )
                 )
             }
@@ -252,12 +260,13 @@ internal class AndroidSensorHandler : SensorController {
                 onData(
                     SensorUpdate.Data(
                         SensorType.LOCATION,
-                        SensorData.Location(
+                        Location(
                             latitude = location.latitude,
                             longitude = location.longitude,
                             altitude = location.altitude
                         ),
-                        PlatformType.Android
+                        PlatformType.Android,
+                        System.currentTimeMillis()
                     )
                 )
             }
@@ -288,7 +297,8 @@ internal class AndroidSensorHandler : SensorController {
                         data = Orientation(
                             orientation = DeviceOrientation.LANDSCAPE
                         ),
-                        PlatformType.Android
+                        platformType = PlatformType.Android,
+                        timestamp = System.currentTimeMillis()
                     )
 
                     in 135..224 -> SensorUpdate.Data(
@@ -296,7 +306,8 @@ internal class AndroidSensorHandler : SensorController {
                         data = Orientation(
                             orientation = DeviceOrientation.PORTRAIT
                         ),
-                        platformType = PlatformType.Android
+                        platformType = PlatformType.Android,
+                        timestamp = System.currentTimeMillis()
                     )
 
                     in 225..314 -> SensorUpdate.Data(
@@ -304,7 +315,8 @@ internal class AndroidSensorHandler : SensorController {
                         data = Orientation(
                             orientation = DeviceOrientation.LANDSCAPE
                         ),
-                        platformType = PlatformType.Android
+                        platformType = PlatformType.Android,
+                        timestamp = System.currentTimeMillis()
                     )
 
                     in 315..360, in 0..44 -> SensorUpdate.Data(
@@ -312,7 +324,8 @@ internal class AndroidSensorHandler : SensorController {
                         data = Orientation(
                             orientation = DeviceOrientation.PORTRAIT
                         ),
-                        platformType = PlatformType.Android
+                        platformType = PlatformType.Android,
+                        timestamp = System.currentTimeMillis()
                     )
 
                     else -> SensorUpdate.Data(
@@ -320,7 +333,8 @@ internal class AndroidSensorHandler : SensorController {
                         data = Orientation(
                             orientation = DeviceOrientation.UNKNOWN
                         ),
-                        platformType = PlatformType.Android
+                        platformType = PlatformType.Android,
+                        timestamp = System.currentTimeMillis()
                     )
                 }
                 onData(newOrientation)
@@ -337,12 +351,14 @@ internal class AndroidSensorHandler : SensorController {
                 val distanceInCM = event.values[0]
                 onData(
                     SensorUpdate.Data(
-                        type = SensorType.PROXIMITY, data = SensorData.Proximity(
+                        type = SensorType.PROXIMITY,
+                        data = Proximity(
                             distanceInCM = distanceInCM,
                             isNear = distanceInCM < (proximitySensor?.maximumRange
                                 ?: distanceInCM)
                         ),
-                        platformType = PlatformType.Android
+                        platformType = PlatformType.Android,
+                        timestamp = System.currentTimeMillis()
                     )
                 )
             }
@@ -360,10 +376,12 @@ internal class AndroidSensorHandler : SensorController {
             override fun onSensorChanged(event: SensorEvent) {
                 onData(
                     SensorUpdate.Data(
-                        type = SensorType.LIGHT, data = SensorData.LightIlluminance(
+                        type = SensorType.LIGHT,
+                        data = LightIlluminance(
                             illuminance = event.values[0]
                         ),
-                        platformType = PlatformType.Android
+                        platformType = PlatformType.Android,
+                        timestamp = System.currentTimeMillis()
                     )
                 )
             }

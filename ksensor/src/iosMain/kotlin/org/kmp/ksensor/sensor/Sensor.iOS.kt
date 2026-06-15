@@ -134,13 +134,14 @@ internal class iOSSensorController : SensorController {
                     it.acceleration.useContents {
                         onData(
                             Data(
-                                SensorType.ACCELEROMETER,
-                                Accelerometer(
+                                type = SensorType.ACCELEROMETER,
+                                data = Accelerometer(
                                     this.x.toFloat(),
                                     this.y.toFloat(),
                                     this.z.toFloat()
                                 ),
-                                PlatformType.iOS
+                                platformType = PlatformType.iOS,
+                                timestamp = (NSDate().timeIntervalSince1970 * 1000).toLong()
                             )
                         )
                     }
@@ -157,14 +158,15 @@ internal class iOSSensorController : SensorController {
                 data?.let {
                     it.rotationRate.useContents {
                         onData(
-                            SensorUpdate.Data(
-                                SensorType.GYROSCOPE,
-                                Gyroscope(
+                            Data(
+                                type = SensorType.GYROSCOPE,
+                                data = Gyroscope(
                                     this.x.toFloat(),
                                     this.y.toFloat(),
                                     this.z.toFloat()
                                 ),
-                                PlatformType.iOS
+                                platformType = PlatformType.iOS,
+                                timestamp = (NSDate().timeIntervalSince1970 * 1000).toLong()
                             )
                         )
                     }
@@ -182,13 +184,14 @@ internal class iOSSensorController : SensorController {
                     it.magneticField.useContents {
                         onData(
                             SensorUpdate.Data(
-                                SensorType.MAGNETOMETER,
-                                Magnetometer(
+                                type = SensorType.MAGNETOMETER,
+                                data = Magnetometer(
                                     this.x.toFloat(),
                                     this.y.toFloat(),
                                     this.z.toFloat()
                                 ),
-                                PlatformType.iOS
+                                platformType = PlatformType.iOS,
+                                timestamp = (NSDate().timeIntervalSince1970 * 1000).toLong()
                             )
                         )
                     }
@@ -203,10 +206,11 @@ internal class iOSSensorController : SensorController {
             data?.let {
                 val pressure = it.pressure.doubleValue.toFloat()
                 onData(
-                    SensorUpdate.Data(
-                        SensorType.BAROMETER,
-                        SensorData.Barometer(pressure),
-                        PlatformType.iOS
+                    Data(
+                        type = SensorType.BAROMETER,
+                        data = SensorData.Barometer(pressure),
+                        platformType = PlatformType.iOS,
+                        timestamp = (NSDate().timeIntervalSince1970 * 1000).toLong()
                     )
                 )
             }
@@ -218,10 +222,11 @@ internal class iOSSensorController : SensorController {
             data?.let {
                 val steps = it.numberOfSteps.intValue
                 onData(
-                    SensorUpdate.Data(
-                        SensorType.STEP_COUNTER,
-                        SensorData.StepCounter(steps),
-                        PlatformType.iOS
+                    Data(
+                        type = SensorType.STEP_COUNTER,
+                        data = SensorData.StepCounter(steps),
+                        platformType = PlatformType.iOS,
+                        timestamp = (NSDate().timeIntervalSince1970 * 1000).toLong()
                     )
                 )
             }
@@ -232,10 +237,11 @@ internal class iOSSensorController : SensorController {
         pedometer?.startPedometerUpdatesFromDate(NSDate()) { data, _ ->
             data?.let {
                 onData(
-                    SensorUpdate.Data(
-                        SensorType.STEP_DETECTOR,
-                        SensorData.StepDetector,
-                        PlatformType.iOS
+                    Data(
+                        type = SensorType.STEP_DETECTOR,
+                        data = SensorData.StepDetector,
+                        platformType = PlatformType.iOS,
+                        timestamp = (NSDate().timeIntervalSince1970 * 1000).toLong()
                     )
                 )
             }
@@ -262,13 +268,14 @@ internal class iOSSensorController : SensorController {
 
                         onData(
                             Data(
-                                SensorType.LOCATION,
-                                Location(
+                                type = SensorType.LOCATION,
+                                data = Location(
                                     latitude = latitude,
                                     longitude = longitude,
                                     altitude = it.altitude
                                 ),
-                                PlatformType.iOS
+                                platformType = PlatformType.iOS,
+                                timestamp = (NSDate().timeIntervalSince1970 * 1000).toLong()
                             )
                         )
                     }
@@ -295,10 +302,11 @@ internal class iOSSensorController : SensorController {
         onData(
             Data(
                 type = SensorType.DEVICE_ORIENTATION,
-                Orientation(
+                data = Orientation(
                     orientation = initialOrientation
                 ),
-                PlatformType.iOS
+                platformType = PlatformType.iOS,
+                timestamp = (NSDate().timeIntervalSince1970 * 1000).toLong()
             )
         )
 
@@ -323,7 +331,8 @@ internal class iOSSensorController : SensorController {
                     data = Orientation(
                         orientation = mapped
                     ),
-                    PlatformType.iOS
+                    platformType = PlatformType.iOS,
+                    timestamp = (NSDate().timeIntervalSince1970 * 1000).toLong()
                 )
             )
         } as NSObject?
@@ -346,7 +355,8 @@ internal class iOSSensorController : SensorController {
                             distanceInCM = if (isNear) 0f else -1f,
                             isNear = isNear
                         ),
-                        PlatformType.iOS
+                        platformType = PlatformType.iOS,
+                        timestamp = (NSDate().timeIntervalSince1970 * 1000).toLong()
                     )
                 )
             }
@@ -367,7 +377,8 @@ internal class iOSSensorController : SensorController {
                         data = LightIlluminance(
                             illuminance = lux
                         ),
-                        PlatformType.iOS
+                        platformType = PlatformType.iOS,
+                        timestamp = (NSDate().timeIntervalSince1970 * 1000).toLong()
                     )
                 )
             }
