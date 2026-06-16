@@ -46,7 +46,12 @@ class StateIOSTest {
 
     @Test
     fun testBleConnectionsState(){
-        assertStateObserver(StateType.BLE_CONNECTION)
+        assertStateObserver(StateType.BLE_CONNECTIONS)
+    }
+
+    @Test
+    fun testBleDiscoversState(){
+        assertStateObserver(StateType.BLE_DISCOVERS)
     }
 
     private fun assertStateObserver(stateType: StateType) = runBlocking {

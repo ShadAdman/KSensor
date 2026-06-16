@@ -51,7 +51,8 @@ internal class AndroidStateHandler : StateController {
                 StateType.LOCALE -> observeLocale { trySend(it).isSuccess }
                 StateType.BATTERY -> observeBattery { trySend(it) }
                 StateType.LOCK -> observeLockState { trySend(it) }
-                StateType.BLE_CONNECTION -> observeBleConnection { trySend(it) }
+                StateType.BLE_CONNECTIONS -> observeBleConnection { trySend(it) }
+                StateType.BLE_DISCOVERS -> observeBleDiscovers { trySend(it) }
             }.also {
                 println("Observer added for $stateType on Android")
             }
@@ -74,6 +75,7 @@ internal class AndroidStateHandler : StateController {
                 is LocaleReceiver -> context.unregisterReceiver(listener)
                 is BatteryStateReceiver -> context.unregisterReceiver(listener)
                 is BleConnectionReceiver -> listener.unregister()
+                is BleDiscoversReceiver -> listener.unregister()
                 else -> println("Observer not found for $stateType on Android")
             }.also {
                 println("Observer removed for $stateType on Android")
@@ -291,7 +293,13 @@ internal class AndroidStateHandler : StateController {
     private fun observeBleConnection(onData: (StateUpdate) -> Unit) {
         val bleReceiver = BleConnectionReceiver(context, onData)
         bleReceiver.register()
-        activeStateObservers[StateType.BLE_CONNECTION] = bleReceiver
+        activeStateObservers[StateType.BLE_CONNECTIONS] = bleReceiver
+    }
+
+    private fun observeBleDiscovers(onData: (StateUpdate) -> Unit) {
+        val bleDiscoversReceiver = BleDiscoversReceiver(context, onData)
+        bleDiscoversReceiver.register()
+        activeStateObservers[StateType.BLE_DISCOVERS] = bleDiscoversReceiver
     }
 
     @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)

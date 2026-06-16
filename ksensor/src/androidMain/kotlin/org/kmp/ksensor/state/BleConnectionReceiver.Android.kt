@@ -45,7 +45,7 @@ internal class BleConnectionReceiver(
         try {
             val connectedDevices = if (bluetoothAdapter?.isEnabled == true) {
                 bluetoothManager.getConnectedDevices(BluetoothProfile.GATT).map { device ->
-                    StateData.BleConnectionStatus.BleDevice(
+                    BleDevice(
                         id = device.address,
                         name = device.name ?: "Unknown Device"
                     )
@@ -56,7 +56,7 @@ internal class BleConnectionReceiver(
 
             onData(
                 StateUpdate.Data(
-                    type = StateType.BLE_CONNECTION,
+                    type = StateType.BLE_CONNECTIONS,
                     data = StateData.BleConnectionStatus(connectedDevices),
                     platformType = PlatformType.Android
                 )

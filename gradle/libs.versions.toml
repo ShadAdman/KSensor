@@ -13,7 +13,7 @@ kotlin = "2.2.0"
 accompanist-permissions = "0.32.0"
 vanniktech-publish = "0.34.0"
 kmmbridge = "1.2.1"
-groupId = "io.github.shadmanadman"
+groupId = "io.github.shadadman"
 artifactId = "KSensor"
 snapshotVersion = "2.0.27-SNAPSHOT"
 [libraries]

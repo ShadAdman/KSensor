@@ -1,4 +1,4 @@
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.1.20-blue.svg?style=flat-square&logo=kotlin)](https://kotlinlang.org/)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.2.0-blue.svg?style=flat-square&logo=kotlin)](https://kotlinlang.org/)
 [![Gradle](https://img.shields.io/badge/Gradle-8.x-green.svg?style=flat-square&logo=gradle)](https://gradle.org/)
 [![License](https://img.shields.io/badge/License-0BSD-informational.svg)](https://opensource.org/licenses/0BSD)
 
@@ -12,7 +12,7 @@
 Add it in your `commonMain.dependencies` :
 
   ```
-  implementation("io.github.shadmanadman:KSensor:3.60.0")
+  implementation("io.github.shadadman:KSensor:3.60.0")
   ```
 
 ### Sensors Observation
@@ -86,7 +86,8 @@ StateType.VOLUME,
 StateType.LOCALE,
 StateType.BATTERY,
 StateType.LOCK,
-StateType.BLE_CONNECTION)
+StateType.BLE_CONNECTIONS,
+StateType.BLE_DISCOVERS)
 ```
 
 - Add observers.
@@ -133,16 +134,16 @@ Each `StateUpdate` has a `platformType` so you know the state data comes from An
         enum class ChargingState { UNKNOWN, DISCHARGING, CHARGING, FULL }
         enum class BatteryHealth { UNKNOWN, GOOD, OVERHEAT, DEAD, OVER_VOLTAGE, UNSPECIFIED_FAILURE, COLD }
   }
-- data class BleConnectionStatus(val connectedDevices: List<BleDevice>) : StateData(){
-        data class BleDevice(val id: String, val name: String)
-    }
+- data class BleConnectionStatus(val connectedDevices: List<BleDevice>)
+- data class BleDiscoversStatus(val discoveredDevices: List<BleDevice>)
+- data class BleDevice(val id: String, val name: String)
 ```
 
 
 #### Permissions
 
 If you are observing location you need `FINE_LOCATION` and `COARSE_LOCATION` permissions on Android.
-You can handel this permissions yourself or let the library handle them for you:
+You can handle these permissions yourself or let the library handle them for you:
 ``` kotlin
     //Put this in AndroidManifest
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
@@ -152,7 +153,7 @@ You can handel this permissions yourself or let the library handle them for you:
 - Inside a composable call:
 
 ``` kotlin
-KSensor.HandelPermissions() { status ->
+KSensor.AskPermission(PermissionType.LOCATION) { status ->
     when (status) {
         PermissionStatus.Granted -> println("Permission Granted")
         PermissionStatus.Denied -> println("Permission Denied")
