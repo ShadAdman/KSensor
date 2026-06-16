@@ -12,7 +12,7 @@
 Add it in your `commonMain.dependencies` :
 
   ```
-  implementation("io.github.shadadman:KSensor:3.60.0")
+  implementation("io.github.shadadman:KSensor:3.80.0")
   ```
 
 ### Sensors Observation
@@ -55,6 +55,8 @@ KSensor.unregisterSensors(sensors)
 ```
 
 Each `SensorUpdate` has a `platformType` so you know the sensor data comes from Android or iOS.
+
+Each `SensorUpdate` has a `timestamp` so you know when the data was collected.
 
 - Sensor Data Models, represents the `sensorUpdate.data`:
 ``` kotlin
