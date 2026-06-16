@@ -12,7 +12,12 @@ const val DEFAULT_INTERVAL_MILLIS = 1000L
 typealias SensorTimeInterval = Long
 
 sealed class SensorUpdate {
-    data class Data(val type: SensorType, val data: SensorData,val platformType: PlatformType) : SensorUpdate()
+    data class Data(
+        val type: SensorType,
+        val data: SensorData,
+        val platformType: PlatformType,
+        val timestamp: Long
+    ) : SensorUpdate()
     data class Error(val exception: Exception) : SensorUpdate()
 }
 

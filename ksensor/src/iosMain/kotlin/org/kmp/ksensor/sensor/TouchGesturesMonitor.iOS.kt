@@ -2,6 +2,8 @@ package org.kmp.ksensor.sensor
 
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
+import platform.Foundation.NSDate
+import platform.Foundation.timeIntervalSince1970
 import platform.UIKit.*
 import kotlin.concurrent.Volatile
 
@@ -57,7 +59,8 @@ internal class TouchInterceptingWindow(
                     y = y,
                     type = type
                 ),
-                platformType = PlatformType.iOS
+                platformType = PlatformType.iOS,
+                timestamp = (NSDate().timeIntervalSince1970 * 1000).toLong()
             )
         )
     }

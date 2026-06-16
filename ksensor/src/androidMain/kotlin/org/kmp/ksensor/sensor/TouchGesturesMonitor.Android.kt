@@ -90,7 +90,9 @@ internal class TouchInterceptingCallback(
                     x = x,
                     y = y,
                     type = type
-                ), platformType = PlatformType.Android
+                ),
+                platformType = PlatformType.Android,
+                timestamp = System.currentTimeMillis()
             )
         )
     }

@@ -27,7 +27,7 @@ enum class SensorType {
     TOUCH_GESTURES
 }
 
-sealed class SensorData() {
+sealed class SensorData {
     data class Accelerometer(
         val x: Float,
         val y: Float,
