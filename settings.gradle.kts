@@ -29,3 +29,13 @@ dependencyResolutionManagement {
 }
 
 include(":ksensor")
+include(":core")
+
+include(":plugins:sensors:motion")
+include(":plugins:sensors:environment")
+include(":plugins:sensors:positioning")
+include(":plugins:sensors:interaction")
+include(":plugins:states:lifecycle")
+include(":plugins:states:network")
+include(":plugins:states:system")
+include(":plugins:states:bluetooth")
