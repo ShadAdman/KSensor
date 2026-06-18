@@ -39,7 +39,7 @@ kotlin {
         }
         androidMain {
             dependencies {
-                //implementation(libs.androidx.lifecycle)
+                implementation(libs.androidx.lifecycle.process)
             }
         }
     }

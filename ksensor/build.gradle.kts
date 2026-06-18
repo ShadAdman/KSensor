@@ -33,7 +33,7 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.accompanist.permissions)
             implementation(libs.androidx.activity.compose)
-            implementation(libs.androidx.lifecycle)
+            implementation(libs.androidx.lifecycle.process)
             implementation(libs.androidx.startup)
 
         }
