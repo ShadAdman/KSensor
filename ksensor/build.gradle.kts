@@ -1,6 +1,8 @@
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
+    //alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.androidKotlinMultiplatformLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.vanniktechPublish)
@@ -11,9 +13,21 @@ plugins {
 version = libs.versions.snapshotVersion.get()
 
 kotlin {
-    androidTarget {
-        publishLibraryVariants("release")
+    android{
+        namespace = providers.gradleProperty("ANDROID_NAMESPACE").get()
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+//        defaultConfig {
+//            minSdk = libs.versions.android.minSdk.get().toInt()
+//            testOptions.targetSdk = libs.versions.android.targetSdk.get().toInt()
+//            testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+//        }
+//        testOptions {
+//            unitTests.isIncludeAndroidResources = true
+//        }
     }
+//    androidTarget {
+//        publishLibraryVariants("release")
+//    }
 
     listOf(
         iosX64(),
@@ -53,18 +67,18 @@ kotlin {
     }
 }
 
-android {
-    namespace = providers.gradleProperty("ANDROID_NAMESPACE").get()
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-    defaultConfig {
-        minSdk = libs.versions.android.minSdk.get().toInt()
-        testOptions.targetSdk = libs.versions.android.targetSdk.get().toInt()
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-    testOptions {
-        unitTests.isIncludeAndroidResources = true
-    }
-}
+//android {
+//    namespace = providers.gradleProperty("ANDROID_NAMESPACE").get()
+//    compileSdk = libs.versions.android.compileSdk.get().toInt()
+//    defaultConfig {
+//        minSdk = libs.versions.android.minSdk.get().toInt()
+//        testOptions.targetSdk = libs.versions.android.targetSdk.get().toInt()
+//        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+//    }
+//    testOptions {
+//        unitTests.isIncludeAndroidResources = true
+//    }
+//}
 
 mavenPublishing {
     publishToMavenCentral()

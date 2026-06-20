@@ -12,6 +12,7 @@ import com.ksensor.core.model.SensorData
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlin.getValue
 
 class AndroidEnvironmentPlugin : EnvironmentPlugin {
     override val id: String = "ksensor.sensors.environment"

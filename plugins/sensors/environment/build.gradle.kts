@@ -4,7 +4,7 @@ plugins {
 }
 
 kotlin {
-    androidLibrary {
+    android {
         namespace = "com.ksensor.plugins.sensors.environment"
         compileSdk = 37
         minSdk = 24
