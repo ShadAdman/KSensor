@@ -37,5 +37,10 @@ kotlin {
                 implementation(libs.kotlinx.coroutines.core)
             }
         }
+        androidMain {
+            dependencies {
+                implementation(libs.androidx.core)
+            }
+        }
     }
 }
