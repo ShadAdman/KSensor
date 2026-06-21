@@ -19,7 +19,7 @@ import platform.Foundation.timeIntervalSince1970
 
 class IosMotionPlugin : MotionPlugin {
     override val id: PluginId = PluginId.MOTION
-    override val requiredPermissions: List<Permission> = emptyList()
+    override val requiredPermissions: List<Permission> = listOf(Permission.ACTIVITY_RECOGNITION)
 
     private val motionManager = CMMotionManager()
     private val pedometer = if (CMPedometer.isStepCountingAvailable()) CMPedometer() else null

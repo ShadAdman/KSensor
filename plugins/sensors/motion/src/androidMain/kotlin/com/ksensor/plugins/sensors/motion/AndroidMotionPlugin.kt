@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.callbackFlow
 
 class AndroidMotionPlugin : MotionPlugin {
     override val id: PluginId = PluginId.MOTION
-    override val requiredPermissions: List<Permission> = emptyList()
+    override val requiredPermissions: List<Permission> = listOf(Permission.ACTIVITY_RECOGNITION)
 
     private val sensorManager: SensorManager by lazy {
         KSensorContext.get().getSystemService(Context.SENSOR_SERVICE) as SensorManager

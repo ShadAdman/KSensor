@@ -15,6 +15,22 @@ All data emitted by plugins is wrapped in a `KSensorResponse<T>` which includes:
 - `platform`: The platform type (Android or iOS).
 - `timestamp`: The system time when the data was collected.
 
+## Permissions Handling
+
+Some plugins require system permissions to function. Each plugin exposes a `requiredPermissions` list indicating what it needs. KSensor provides a `PermissionHandler` interface in the Core module to help check and request these permissions across platforms.
+
+### Core Permission API
+```kotlin
+interface PermissionHandler {
+    fun hasPermission(permission: Permission): Boolean
+    suspend fun requestPermission(permission: Permission): Boolean
+}
+```
+
+You must ensure that the necessary permissions are granted before starting sensor observations. Each plugin section below lists its required permissions.
+
+---
+
 ## Core Module
 
 The foundation of the library. It is required for all plugins.
@@ -33,6 +49,10 @@ Dependency:
 implementation("io.github.shadadman:ksensor-sensors-motion:2.0.0")
 ```
 
+Required Permissions:
+- Android: `ACTIVITY_RECOGNITION` (Required for Step Counter)
+- iOS: `ACTIVITY_RECOGNITION` (Motion & Fitness)
+
 Data Models (Wrapped in `KSensorResponse`):
 
 - Accelerometer: `Accelerometer(values: Vector3)`
@@ -49,6 +69,8 @@ Dependency:
 implementation("io.github.shadadman:ksensor-sensors-environment:2.0.0")
 ```
 
+Required Permissions: None
+
 Data Models (Wrapped in `KSensorResponse`):
 
 - Barometer: `Barometer(pressure: Float)`
@@ -63,6 +85,9 @@ Dependency:
 ```kotlin
 implementation("io.github.shadadman:ksensor-sensors-positioning:2.0.0")
 ```
+
+Required Permissions:
+- Android/iOS: `LOCATION`
 
 Data Models (Wrapped in `KSensorResponse`):
 
@@ -80,6 +105,8 @@ Dependency:
 implementation("io.github.shadadman:ksensor-sensors-interaction:2.0.0")
 ```
 
+Required Permissions: None
+
 Data Models (Wrapped in `KSensorResponse`):
 
 - Touch Gestures: `TouchGestures(x: Float, y: Float, type: TouchGestureType)`
@@ -92,6 +119,8 @@ Dependency:
 ```kotlin
 implementation("io.github.shadadman:ksensor-states-network:2.0.0")
 ```
+
+Required Permissions: None
 
 Data Models (Wrapped in `KSensorResponse`):
 
@@ -106,6 +135,8 @@ Dependency:
 ```kotlin
 implementation("io.github.shadadman:ksensor-states-system:2.0.0")
 ```
+
+Required Permissions: None
 
 Data Models (Wrapped in `KSensorResponse`):
 
@@ -124,11 +155,14 @@ Dependency:
 implementation("io.github.shadadman:ksensor-states-bluetooth:2.0.0")
 ```
 
+Required Permissions:
+- Android/iOS: `BLUETOOTH`
+
 Data Models (Wrapped in `KSensorResponse`):
 
 - BLE Connections: `BleConnectionStatus(connectedDevices: List<BleDevice>)`
 - BLE Discoveries: `BleDiscoversStatus(discoveredDevices: List<BleDevice>)`
-- `BleDevice(id: String, name: String)`
+- BLE Device: `BleDevice(id: String, name: String)`
 
 ## Lifecycle States Plugin
 
@@ -138,6 +172,8 @@ Dependency:
 ```kotlin
 implementation("io.github.shadadman:ksensor-states-lifecycle:2.0.0")
 ```
+
+Required Permissions: None
 
 Data Models (Wrapped in `KSensorResponse`):
 
@@ -156,7 +192,10 @@ KSensor.register(createMotionPlugin())
 // Retrieve and observe
 val motion = KSensor.get<MotionPlugin>(PluginId.MOTION)
 motion?.accelerometer()?.collect { response ->
-    println("Platform: ${response.platform}, Data: ${response.data}, timestamp: ${response.timestamp}")
+    // response.data contains the Accelerometer values
+    // response.platform indicates if it is Android or iOS
+    // response.timestamp indicates when the data was recorded
+    println("Platform: ${response.platform}, Data: ${response.data}")
 }
 ```
 
