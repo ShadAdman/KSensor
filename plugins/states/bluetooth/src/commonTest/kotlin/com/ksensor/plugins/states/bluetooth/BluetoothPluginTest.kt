@@ -1,7 +1,9 @@
 package com.ksensor.plugins.states.bluetooth
 
 import com.ksensor.core.Permission
+import com.ksensor.core.PluginId
 import com.ksensor.core.StatePlugin
+import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.StateData
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.runBlocking
@@ -12,25 +14,25 @@ import kotlin.test.assertTrue
 import kotlin.test.assertFalse
 
 class FakeBluetoothPlugin : BluetoothPlugin {
-    override val id: String = "fake.bluetooth"
+    override val id: PluginId = PluginId.BLUETOOTH
     override val requiredPermissions: List<Permission> = emptyList()
 
     val activeObservers = mutableSetOf<String>()
 
     override fun connections(): StatePlugin<StateData.BleConnectionStatus> = object : StatePlugin<StateData.BleConnectionStatus> {
-        override val id: String = "fake.connections"
+        override val id: PluginId = PluginId.BLUETOOTH
         override val requiredPermissions: List<Permission> = emptyList()
-        override val currentState: StateData.BleConnectionStatus = StateData.BleConnectionStatus(emptyList())
-        override fun observe(): Flow<StateData.BleConnectionStatus> = 
-            MutableSharedFlow<StateData.BleConnectionStatus>().asTrackedFlow("connections")
+        override val currentState: KSensorResponse<StateData.BleConnectionStatus> = TODO()
+        override fun observe(): Flow<KSensorResponse<StateData.BleConnectionStatus>> = 
+            MutableSharedFlow<KSensorResponse<StateData.BleConnectionStatus>>().asTrackedFlow("connections")
     }
 
     override fun discoveries(): StatePlugin<StateData.BleDiscoversStatus> = object : StatePlugin<StateData.BleDiscoversStatus> {
-        override val id: String = "fake.discoveries"
+        override val id: PluginId = PluginId.BLUETOOTH
         override val requiredPermissions: List<Permission> = emptyList()
-        override val currentState: StateData.BleDiscoversStatus = StateData.BleDiscoversStatus(emptyList())
-        override fun observe(): Flow<StateData.BleDiscoversStatus> = 
-            MutableSharedFlow<StateData.BleDiscoversStatus>().asTrackedFlow("discoveries")
+        override val currentState: KSensorResponse<StateData.BleDiscoversStatus> = TODO()
+        override fun observe(): Flow<KSensorResponse<StateData.BleDiscoversStatus>> = 
+            MutableSharedFlow<KSensorResponse<StateData.BleDiscoversStatus>>().asTrackedFlow("discoveries")
     }
 
     private fun <T> Flow<T>.asTrackedFlow(name: String): Flow<T> {

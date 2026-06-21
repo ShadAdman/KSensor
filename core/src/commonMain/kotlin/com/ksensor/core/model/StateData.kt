@@ -1,9 +1,6 @@
 package com.ksensor.core.model
 
-enum class PlatformType {
-    iOS,
-    Android
-}
+import com.ksensor.core.PlatformType
 
 enum class StateType {
     SCREEN,

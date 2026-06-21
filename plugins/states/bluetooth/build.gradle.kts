@@ -8,6 +8,13 @@ kotlin {
         namespace = "com.ksensor.plugins.states.bluetooth"
         compileSdk = 37
         minSdk = 24
+
+        withHostTestBuilder {
+        }
+
+        withDeviceTestBuilder {
+            sourceSetTreeName = "test"
+        }
     }
 
     val xcfName = "bluetoothStateKit"

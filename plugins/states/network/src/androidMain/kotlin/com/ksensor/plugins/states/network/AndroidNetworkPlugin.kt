@@ -5,15 +5,18 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import com.ksensor.core.Permission
+import com.ksensor.core.PlatformType
+import com.ksensor.core.PluginId
 import com.ksensor.core.StatePlugin
 import com.ksensor.core.context.KSensorContext
+import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.StateData
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
 class AndroidNetworkPlugin : NetworkPlugin {
-    override val id: String = "ksensor.states.network"
+    override val id: PluginId = PluginId.NETWORK
     override val requiredPermissions: List<Permission> = emptyList()
 
     private val connectivityManager by lazy {
@@ -21,14 +24,14 @@ class AndroidNetworkPlugin : NetworkPlugin {
     }
 
     override fun connectivity(): StatePlugin<StateData.ConnectivityStatus> = object : StatePlugin<StateData.ConnectivityStatus> {
-        override val id: String = "${this@AndroidNetworkPlugin.id}.connectivity"
+        override val id: PluginId = PluginId.NETWORK
         override val requiredPermissions: List<Permission> = emptyList()
-        override val currentState: StateData.ConnectivityStatus
-            get() = StateData.ConnectivityStatus(isConnected())
+        override val currentState: KSensorResponse<StateData.ConnectivityStatus>
+            get() = KSensorResponse(StateData.ConnectivityStatus(isConnected()), PlatformType.Android)
 
-        override fun observe(): Flow<StateData.ConnectivityStatus> = callbackFlow {
+        override fun observe(): Flow<KSensorResponse<StateData.ConnectivityStatus>> = callbackFlow {
             val monitor = ConnectivityMonitor(
-                onStatusChanged = { trySend(StateData.ConnectivityStatus(it)) },
+                onStatusChanged = { trySend(KSensorResponse(StateData.ConnectivityStatus(it), PlatformType.Android)) },
                 onActiveNetworkChanged = {}
             )
             connectivityManager.registerDefaultNetworkCallback(monitor)
@@ -37,15 +40,15 @@ class AndroidNetworkPlugin : NetworkPlugin {
     }
 
     override fun activeNetwork(): StatePlugin<StateData.CurrentActiveNetwork> = object : StatePlugin<StateData.CurrentActiveNetwork> {
-        override val id: String = "${this@AndroidNetworkPlugin.id}.active"
+        override val id: PluginId = PluginId.NETWORK
         override val requiredPermissions: List<Permission> = emptyList()
-        override val currentState: StateData.CurrentActiveNetwork
-            get() = StateData.CurrentActiveNetwork(getActiveNetworkType())
+        override val currentState: KSensorResponse<StateData.CurrentActiveNetwork>
+            get() = KSensorResponse(StateData.CurrentActiveNetwork(getActiveNetworkType()), PlatformType.Android)
 
-        override fun observe(): Flow<StateData.CurrentActiveNetwork> = callbackFlow {
+        override fun observe(): Flow<KSensorResponse<StateData.CurrentActiveNetwork>> = callbackFlow {
             val monitor = ConnectivityMonitor(
                 onStatusChanged = {},
-                onActiveNetworkChanged = { trySend(StateData.CurrentActiveNetwork(it)) }
+                onActiveNetworkChanged = { trySend(KSensorResponse(StateData.CurrentActiveNetwork(it), PlatformType.Android)) }
             )
             val request = NetworkRequest.Builder()
                 .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)

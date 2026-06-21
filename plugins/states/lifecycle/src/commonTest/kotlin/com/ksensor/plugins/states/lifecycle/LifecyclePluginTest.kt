@@ -1,7 +1,9 @@
 package com.ksensor.plugins.states.lifecycle
 
 import com.ksensor.core.Permission
+import com.ksensor.core.PluginId
 import com.ksensor.core.StatePlugin
+import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.StateData
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.runBlocking
@@ -12,17 +14,17 @@ import kotlin.test.assertTrue
 import kotlin.test.assertFalse
 
 class FakeLifecyclePlugin : LifecyclePlugin {
-    override val id: String = "fake.lifecycle"
+    override val id: PluginId = PluginId.LIFECYCLE
     override val requiredPermissions: List<Permission> = emptyList()
 
     val activeObservers = mutableSetOf<String>()
 
     override fun appVisibility(): StatePlugin<StateData.AppVisibilityStatus> = object : StatePlugin<StateData.AppVisibilityStatus> {
-        override val id: String = "fake.appVisibility"
+        override val id: PluginId = PluginId.LIFECYCLE
         override val requiredPermissions: List<Permission> = emptyList()
-        override val currentState: StateData.AppVisibilityStatus = StateData.AppVisibilityStatus(true)
-        override fun observe(): Flow<StateData.AppVisibilityStatus> = 
-            MutableSharedFlow<StateData.AppVisibilityStatus>().asTrackedFlow("appVisibility")
+        override val currentState: KSensorResponse<StateData.AppVisibilityStatus> = TODO()
+        override fun observe(): Flow<KSensorResponse<StateData.AppVisibilityStatus>> = 
+            MutableSharedFlow<KSensorResponse<StateData.AppVisibilityStatus>>().asTrackedFlow("appVisibility")
     }
 
     private fun <T> Flow<T>.asTrackedFlow(name: String): Flow<T> {

@@ -1,9 +1,12 @@
 package com.ksensor.plugins.sensors.positioning
 
 import com.ksensor.core.Permission
+import com.ksensor.core.PlatformType
+import com.ksensor.core.PluginId
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.StatePlugin
 import com.ksensor.core.model.DeviceOrientation
+import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.SensorData
 import com.ksensor.core.model.StateData
 import com.ksensor.core.model.Vector3
@@ -27,20 +30,21 @@ import platform.UIKit.UIDeviceOrientationDidChangeNotification
 import platform.darwin.NSObject
 
 class IosPositioningPlugin : PositioningPlugin {
-    override val id: String = "ksensor.sensors.positioning"
+    override val id: PluginId = PluginId.POSITIONING
     override val requiredPermissions: List<Permission> = listOf(Permission.LOCATION)
 
     private val locationManager = CLLocationManager()
     private val motionManager = CMMotionManager()
 
     @OptIn(ExperimentalForeignApi::class)
-    override fun location(config: SensorConfig): Flow<SensorData.Location> = callbackFlow {
+    override fun location(config: SensorConfig): Flow<KSensorResponse<SensorData.Location>> = callbackFlow {
         val delegate = object : NSObject(), CLLocationManagerDelegateProtocol {
             override fun locationManager(manager: CLLocationManager, didUpdateLocations: List<*>) {
                 val loc = didUpdateLocations.lastOrNull() as? CLLocation
                 loc?.let {
                     it.coordinate.useContents {
-                        trySend(SensorData.Location(latitude, longitude, it.altitude))
+                        val sensorData = SensorData.Location(latitude, longitude, it.altitude)
+                        trySend(KSensorResponse(sensorData, PlatformType.iOS))
                     }
                 }
             }
@@ -53,7 +57,7 @@ class IosPositioningPlugin : PositioningPlugin {
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    override fun magnetometer(config: SensorConfig): Flow<SensorData.Magnetometer> = callbackFlow {
+    override fun magnetometer(config: SensorConfig): Flow<KSensorResponse<SensorData.Magnetometer>> = callbackFlow {
         if (!motionManager.magnetometerAvailable) {
             close()
             return@callbackFlow
@@ -61,13 +65,14 @@ class IosPositioningPlugin : PositioningPlugin {
         motionManager.magnetometerUpdateInterval = config.samplingIntervalMs / 1000.0
         motionManager.startMagnetometerUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
             data?.magneticField?.useContents {
-                trySend(SensorData.Magnetometer(Vector3(x.toFloat(), y.toFloat(), z.toFloat())))
+                val sensorData = SensorData.Magnetometer(Vector3(x.toFloat(), y.toFloat(), z.toFloat()))
+                trySend(KSensorResponse(sensorData, PlatformType.iOS))
             }
         }
         awaitClose { motionManager.stopMagnetometerUpdates() }
     }
 
-    override fun orientation(config: SensorConfig): Flow<SensorData.Orientation> = callbackFlow {
+    override fun orientation(config: SensorConfig): Flow<KSensorResponse<SensorData.Orientation>> = callbackFlow {
         UIDevice.currentDevice.beginGeneratingDeviceOrientationNotifications()
         val observer = NSNotificationCenter.defaultCenter.addObserverForName(
             name = UIDeviceOrientationDidChangeNotification,
@@ -82,7 +87,8 @@ class IosPositioningPlugin : PositioningPlugin {
                 UIDeviceOrientation.UIDeviceOrientationLandscapeRight -> DeviceOrientation.LANDSCAPE
                 else -> DeviceOrientation.UNKNOWN
             }
-            trySend(SensorData.Orientation(mapped, orientation.value.toInt()))
+            val sensorData = SensorData.Orientation(mapped, orientation.value.toInt())
+            trySend(KSensorResponse(sensorData, PlatformType.iOS))
         }
         awaitClose {
             NSNotificationCenter.defaultCenter.removeObserver(observer)
@@ -91,13 +97,15 @@ class IosPositioningPlugin : PositioningPlugin {
     }
 
     override fun locationStatus(): StatePlugin<StateData.LocationStatus> = object : StatePlugin<StateData.LocationStatus> {
-        override val id: String = "${this@IosPositioningPlugin.id}.status"
+        override val id: PluginId = PluginId.POSITIONING
         override val requiredPermissions: List<Permission> = emptyList()
-        override val currentState: StateData.LocationStatus
-            get() = StateData.LocationStatus(isLocationCurrentlyEnabled())
+        override val currentState: KSensorResponse<StateData.LocationStatus>
+            get() = KSensorResponse(StateData.LocationStatus(isLocationCurrentlyEnabled()), PlatformType.iOS)
 
-        override fun observe(): Flow<StateData.LocationStatus> = callbackFlow {
-            val receiver = LocationProviderReceiver { trySend(StateData.LocationStatus(it)) }
+        override fun observe(): Flow<KSensorResponse<StateData.LocationStatus>> = callbackFlow {
+            val receiver = LocationProviderReceiver {
+                trySend(KSensorResponse(StateData.LocationStatus(it), PlatformType.iOS))
+            }
             awaitClose { receiver.dispose() }
         }
 

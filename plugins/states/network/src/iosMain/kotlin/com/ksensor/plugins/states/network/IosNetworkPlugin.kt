@@ -1,7 +1,10 @@
 package com.ksensor.plugins.states.network
 
 import com.ksensor.core.Permission
+import com.ksensor.core.PlatformType
+import com.ksensor.core.PluginId
 import com.ksensor.core.StatePlugin
+import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.StateData
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -10,21 +13,22 @@ import platform.Network.*
 import platform.darwin.dispatch_get_main_queue
 
 class IosNetworkPlugin : NetworkPlugin {
-    override val id: String = "ksensor.states.network"
+    override val id: PluginId = PluginId.NETWORK
     override val requiredPermissions: List<Permission> = emptyList()
 
     override fun connectivity(): StatePlugin<StateData.ConnectivityStatus> {
         return object : StatePlugin<StateData.ConnectivityStatus> {
-            override val id: String = "${this@IosNetworkPlugin.id}.connectivity"
+            override val id: PluginId = PluginId.NETWORK
             override val requiredPermissions: List<Permission> = emptyList()
-            override val currentState: StateData.ConnectivityStatus
-                get() = StateData.ConnectivityStatus(false) // Placeholder
+            override val currentState: KSensorResponse<StateData.ConnectivityStatus>
+                get() = KSensorResponse(StateData.ConnectivityStatus(false), PlatformType.iOS) // Placeholder
 
-            override fun observe(): Flow<StateData.ConnectivityStatus> = callbackFlow {
+            override fun observe(): Flow<KSensorResponse<StateData.ConnectivityStatus>> = callbackFlow {
                 val monitor = nw_path_monitor_create()
                 nw_path_monitor_set_update_handler(monitor) { path ->
                     val status = nw_path_get_status(path)
-                    trySend(StateData.ConnectivityStatus(status == nw_path_status_satisfied))
+                    val sensorData = StateData.ConnectivityStatus(status == nw_path_status_satisfied)
+                    trySend(KSensorResponse(sensorData, PlatformType.iOS))
                 }
                 nw_path_monitor_set_queue(monitor, dispatch_get_main_queue())
                 nw_path_monitor_start(monitor)
@@ -35,12 +39,12 @@ class IosNetworkPlugin : NetworkPlugin {
 
     override fun activeNetwork(): StatePlugin<StateData.CurrentActiveNetwork> {
         return object : StatePlugin<StateData.CurrentActiveNetwork> {
-            override val id: String = "${this@IosNetworkPlugin.id}.active"
+            override val id: PluginId = PluginId.NETWORK
             override val requiredPermissions: List<Permission> = emptyList()
-            override val currentState: StateData.CurrentActiveNetwork
-                get() = StateData.CurrentActiveNetwork(StateData.CurrentActiveNetwork.ActiveNetwork.NONE)
+            override val currentState: KSensorResponse<StateData.CurrentActiveNetwork>
+                get() = KSensorResponse(StateData.CurrentActiveNetwork(StateData.CurrentActiveNetwork.ActiveNetwork.NONE), PlatformType.iOS)
 
-            override fun observe(): Flow<StateData.CurrentActiveNetwork> = callbackFlow {
+            override fun observe(): Flow<KSensorResponse<StateData.CurrentActiveNetwork>> = callbackFlow {
                 val monitor = nw_path_monitor_create()
                 nw_path_monitor_set_update_handler(monitor) { path ->
                     val activeNetwork = when {
@@ -48,7 +52,7 @@ class IosNetworkPlugin : NetworkPlugin {
                         nw_path_uses_interface_type(path, nw_interface_type_cellular) -> StateData.CurrentActiveNetwork.ActiveNetwork.CELLULAR
                         else -> StateData.CurrentActiveNetwork.ActiveNetwork.NONE
                     }
-                    trySend(StateData.CurrentActiveNetwork(activeNetwork))
+                    trySend(KSensorResponse(StateData.CurrentActiveNetwork(activeNetwork), PlatformType.iOS))
                 }
                 nw_path_monitor_set_queue(monitor, dispatch_get_main_queue())
                 nw_path_monitor_start(monitor)

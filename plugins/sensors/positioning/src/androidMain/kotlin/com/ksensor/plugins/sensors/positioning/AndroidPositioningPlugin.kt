@@ -12,10 +12,13 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.view.OrientationEventListener
 import com.ksensor.core.Permission
+import com.ksensor.core.PlatformType
+import com.ksensor.core.PluginId
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.StatePlugin
 import com.ksensor.core.context.KSensorContext
 import com.ksensor.core.model.DeviceOrientation
+import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.SensorData
 import com.ksensor.core.model.StateData
 import com.ksensor.core.model.Vector3
@@ -24,7 +27,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
 class AndroidPositioningPlugin : PositioningPlugin {
-    override val id: String = "ksensor.sensors.positioning"
+    override val id: PluginId = PluginId.POSITIONING
     override val requiredPermissions: List<Permission> = listOf(Permission.LOCATION)
 
     private val context: Context by lazy { KSensorContext.get() }
@@ -36,10 +39,11 @@ class AndroidPositioningPlugin : PositioningPlugin {
     }
 
     @SuppressLint("MissingPermission")
-    override fun location(config: SensorConfig): Flow<SensorData.Location> = callbackFlow {
+    override fun location(config: SensorConfig): Flow<KSensorResponse<SensorData.Location>> = callbackFlow {
         val listener = object : LocationListener {
             override fun onLocationChanged(location: Location) {
-                trySend(SensorData.Location(location.latitude, location.longitude, location.altitude))
+                val data = SensorData.Location(location.latitude, location.longitude, location.altitude)
+                trySend(KSensorResponse(data, PlatformType.Android))
             }
         }
         try {
@@ -55,7 +59,7 @@ class AndroidPositioningPlugin : PositioningPlugin {
         awaitClose { locationManager.removeUpdates(listener) }
     }
 
-    override fun magnetometer(config: SensorConfig): Flow<SensorData.Magnetometer> = callbackFlow {
+    override fun magnetometer(config: SensorConfig): Flow<KSensorResponse<SensorData.Magnetometer>> = callbackFlow {
         val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
         if (sensor == null) {
             close()
@@ -63,7 +67,8 @@ class AndroidPositioningPlugin : PositioningPlugin {
         }
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
-                trySend(SensorData.Magnetometer(Vector3(event.values[0], event.values[1], event.values[2])))
+                val data = SensorData.Magnetometer(Vector3(event.values[0], event.values[1], event.values[2]))
+                trySend(KSensorResponse(data, PlatformType.Android))
             }
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
@@ -71,7 +76,7 @@ class AndroidPositioningPlugin : PositioningPlugin {
         awaitClose { sensorManager.unregisterListener(listener) }
     }
 
-    override fun orientation(config: SensorConfig): Flow<SensorData.Orientation> = callbackFlow {
+    override fun orientation(config: SensorConfig): Flow<KSensorResponse<SensorData.Orientation>> = callbackFlow {
         val listener = object : OrientationEventListener(context) {
             override fun onOrientationChanged(orientation: Int) {
                 val mapped = when (orientation) {
@@ -81,7 +86,8 @@ class AndroidPositioningPlugin : PositioningPlugin {
                     in 315..360, in 0..44 -> DeviceOrientation.PORTRAIT
                     else -> DeviceOrientation.UNKNOWN
                 }
-                trySend(SensorData.Orientation(mapped, orientation))
+                val data = SensorData.Orientation(mapped, orientation)
+                trySend(KSensorResponse(data, PlatformType.Android))
             }
         }
         listener.enable()
@@ -89,14 +95,14 @@ class AndroidPositioningPlugin : PositioningPlugin {
     }
 
     override fun locationStatus(): StatePlugin<StateData.LocationStatus> = object : StatePlugin<StateData.LocationStatus> {
-        override val id: String = "${this@AndroidPositioningPlugin.id}.status"
+        override val id: PluginId = PluginId.POSITIONING
         override val requiredPermissions: List<Permission> = emptyList()
-        override val currentState: StateData.LocationStatus
-            get() = StateData.LocationStatus(locationManager.isLocationEnabled)
+        override val currentState: KSensorResponse<StateData.LocationStatus>
+            get() = KSensorResponse(StateData.LocationStatus(locationManager.isLocationEnabled), PlatformType.Android)
 
-        override fun observe(): Flow<StateData.LocationStatus> = callbackFlow {
+        override fun observe(): Flow<KSensorResponse<StateData.LocationStatus>> = callbackFlow {
             val receiver = LocationProviderReceiver {
-                trySend(StateData.LocationStatus(locationManager.isLocationEnabled))
+                trySend(KSensorResponse(StateData.LocationStatus(locationManager.isLocationEnabled), PlatformType.Android))
             }
             context.registerReceiver(receiver, IntentFilter(LocationManager.MODE_CHANGED_ACTION))
             awaitClose { context.unregisterReceiver(receiver) }

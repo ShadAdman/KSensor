@@ -8,6 +8,13 @@ kotlin {
         namespace = "com.ksensor.plugins.sensors.environment"
         compileSdk = 37
         minSdk = 24
+
+        withHostTestBuilder {
+        }
+
+        withDeviceTestBuilder {
+            sourceSetTreeName = "test"
+        }
     }
 
     val xcfName = "environmentKit"

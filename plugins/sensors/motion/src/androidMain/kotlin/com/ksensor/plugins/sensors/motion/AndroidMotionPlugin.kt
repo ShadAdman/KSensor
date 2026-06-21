@@ -6,8 +6,11 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import com.ksensor.core.Permission
+import com.ksensor.core.PlatformType
+import com.ksensor.core.PluginId
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.context.KSensorContext
+import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.SensorData
 import com.ksensor.core.model.Vector3
 import kotlinx.coroutines.channels.awaitClose
@@ -15,14 +18,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
 class AndroidMotionPlugin : MotionPlugin {
-    override val id: String = "ksensor.sensors.motion"
+    override val id: PluginId = PluginId.MOTION
     override val requiredPermissions: List<Permission> = emptyList()
 
     private val sensorManager: SensorManager by lazy {
         KSensorContext.get().getSystemService(Context.SENSOR_SERVICE) as SensorManager
     }
 
-    override fun accelerometer(config: SensorConfig): Flow<SensorData.Accelerometer> = callbackFlow {
+    override fun accelerometer(config: SensorConfig): Flow<KSensorResponse<SensorData.Accelerometer>> = callbackFlow {
         val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         if (sensor == null) {
             close()
@@ -39,7 +42,7 @@ class AndroidMotionPlugin : MotionPlugin {
                         event.values[2] / maximumRange
                     )
                 )
-                trySend(data)
+                trySend(KSensorResponse(data, PlatformType.Android))
             }
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
@@ -48,7 +51,7 @@ class AndroidMotionPlugin : MotionPlugin {
         awaitClose { sensorManager.unregisterListener(listener) }
     }
 
-    override fun gyroscope(config: SensorConfig): Flow<SensorData.Gyroscope> = callbackFlow {
+    override fun gyroscope(config: SensorConfig): Flow<KSensorResponse<SensorData.Gyroscope>> = callbackFlow {
         val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
         if (sensor == null) {
             close()
@@ -60,7 +63,7 @@ class AndroidMotionPlugin : MotionPlugin {
                 val data = SensorData.Gyroscope(
                     Vector3(event.values[0], event.values[1], event.values[2])
                 )
-                trySend(data)
+                trySend(KSensorResponse(data, PlatformType.Android))
             }
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
@@ -69,7 +72,7 @@ class AndroidMotionPlugin : MotionPlugin {
         awaitClose { sensorManager.unregisterListener(listener) }
     }
 
-    override fun stepCounter(config: SensorConfig): Flow<SensorData.StepCounter> = callbackFlow {
+    override fun stepCounter(config: SensorConfig): Flow<KSensorResponse<SensorData.StepCounter>> = callbackFlow {
         val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
         if (sensor == null) {
             close()
@@ -78,7 +81,8 @@ class AndroidMotionPlugin : MotionPlugin {
 
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
-                trySend(SensorData.StepCounter(event.values[0].toInt()))
+                val data = SensorData.StepCounter(event.values[0].toInt())
+                trySend(KSensorResponse(data, PlatformType.Android))
             }
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
@@ -87,7 +91,7 @@ class AndroidMotionPlugin : MotionPlugin {
         awaitClose { sensorManager.unregisterListener(listener) }
     }
 
-    override fun stepDetector(config: SensorConfig): Flow<SensorData.StepDetector> = callbackFlow {
+    override fun stepDetector(config: SensorConfig): Flow<KSensorResponse<SensorData.StepDetector>> = callbackFlow {
         val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
         if (sensor == null) {
             close()
@@ -96,7 +100,7 @@ class AndroidMotionPlugin : MotionPlugin {
 
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
-                trySend(SensorData.StepDetector)
+                trySend(KSensorResponse(SensorData.StepDetector, PlatformType.Android))
             }
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }

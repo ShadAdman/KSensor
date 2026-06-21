@@ -1,6 +1,7 @@
 package com.ksensor.plugins.sensors.motion
 
 import com.ksensor.core.Permission
+import com.ksensor.core.PluginId
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.model.SensorData
 import kotlinx.coroutines.flow.Flow
@@ -15,7 +16,7 @@ import kotlin.test.assertTrue
 import kotlin.test.assertFalse
 
 class FakeMotionPlugin : MotionPlugin {
-    override val id: String = "fake.motion"
+    override val id: PluginId = PluginId.MOTION
     override val requiredPermissions: List<Permission> = emptyList()
 
     val activeObservers = mutableSetOf<String>()

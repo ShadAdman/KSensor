@@ -4,7 +4,7 @@ package com.ksensor.core
  * Main entry point for KSensor. Handles plugin registration and discovery.
  */
 object KSensor {
-    private val registry = mutableMapOf<String, KSensorPlugin>()
+    private val registry = mutableMapOf<PluginId, KSensorPlugin>()
 
     /**
      * Registers a plugin.
@@ -16,7 +16,7 @@ object KSensor {
     /**
      * Unregisters a plugin.
      */
-    fun unregister(id: String) {
+    fun unregister(id: PluginId) {
         registry.remove(id)
     }
 
@@ -24,12 +24,12 @@ object KSensor {
      * Retrieves a registered plugin by its ID.
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T : KSensorPlugin> get(id: String): T? {
+    fun <T : KSensorPlugin> get(id: PluginId): T? {
         return registry[id] as? T
     }
 
     /**
      * Checks if a plugin is registered.
      */
-    fun hasPlugin(id: String): Boolean = registry.containsKey(id)
+    fun hasPlugin(id: PluginId): Boolean = registry.containsKey(id)
 }

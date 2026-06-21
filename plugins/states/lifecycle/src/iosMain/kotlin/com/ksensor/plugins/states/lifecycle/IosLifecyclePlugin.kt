@@ -1,7 +1,10 @@
 package com.ksensor.plugins.states.lifecycle
 
 import com.ksensor.core.Permission
+import com.ksensor.core.PlatformType
+import com.ksensor.core.PluginId
 import com.ksensor.core.StatePlugin
+import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.StateData
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -12,26 +15,26 @@ import platform.UIKit.UIApplicationDidEnterBackgroundNotification
 import platform.UIKit.UIApplicationWillEnterForegroundNotification
 
 class IosLifecyclePlugin : LifecyclePlugin {
-    override val id: String = "ksensor.states.lifecycle"
+    override val id: PluginId = PluginId.LIFECYCLE
     override val requiredPermissions: List<Permission> = emptyList()
 
     override fun appVisibility(): StatePlugin<StateData.AppVisibilityStatus> = object : StatePlugin<StateData.AppVisibilityStatus> {
-        override val id: String = "${this@IosLifecyclePlugin.id}.visibility"
+        override val id: PluginId = PluginId.LIFECYCLE
         override val requiredPermissions: List<Permission> = emptyList()
-        override val currentState: StateData.AppVisibilityStatus = StateData.AppVisibilityStatus(true)
+        override val currentState: KSensorResponse<StateData.AppVisibilityStatus> = KSensorResponse(StateData.AppVisibilityStatus(true), PlatformType.iOS)
 
-        override fun observe(): Flow<StateData.AppVisibilityStatus> = callbackFlow {
+        override fun observe(): Flow<KSensorResponse<StateData.AppVisibilityStatus>> = callbackFlow {
             val foregroundObserver = NSNotificationCenter.defaultCenter.addObserverForName(
                 name = UIApplicationWillEnterForegroundNotification,
                 `object` = null,
                 queue = NSOperationQueue.mainQueue
-            ) { trySend(StateData.AppVisibilityStatus(true)) }
+            ) { trySend(KSensorResponse(StateData.AppVisibilityStatus(true), PlatformType.iOS)) }
 
             val backgroundObserver = NSNotificationCenter.defaultCenter.addObserverForName(
                 name = UIApplicationDidEnterBackgroundNotification,
                 `object` = null,
                 queue = NSOperationQueue.mainQueue
-            ) { trySend(StateData.AppVisibilityStatus(false)) }
+            ) { trySend(KSensorResponse(StateData.AppVisibilityStatus(false), PlatformType.iOS)) }
 
             awaitClose {
                 NSNotificationCenter.defaultCenter.removeObserver(foregroundObserver)

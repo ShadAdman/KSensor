@@ -8,6 +8,13 @@ kotlin {
         namespace = "com.ksensor.plugins.sensors.motion"
         compileSdk = 37
         minSdk = 24
+
+        withHostTestBuilder {
+        }
+
+        withDeviceTestBuilder {
+            sourceSetTreeName = "test"
+        }
     }
 
     val xcfName = "motionKit"

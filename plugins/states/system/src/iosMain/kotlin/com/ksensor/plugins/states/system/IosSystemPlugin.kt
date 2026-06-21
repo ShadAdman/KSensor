@@ -1,7 +1,10 @@
 package com.ksensor.plugins.states.system
 
 import com.ksensor.core.Permission
+import com.ksensor.core.PlatformType
+import com.ksensor.core.PluginId
 import com.ksensor.core.StatePlugin
+import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.StateData
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -11,81 +14,84 @@ import platform.Foundation.NSOperationQueue
 import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationProtectedDataDidBecomeAvailable
 import platform.UIKit.UIApplicationProtectedDataWillBecomeUnavailable
-import platform.darwin.NSObject
 
 class IosSystemPlugin : SystemPlugin {
-    override val id: String = "ksensor.states.system"
+    override val id: PluginId = PluginId.SYSTEM
     override val requiredPermissions: List<Permission> = emptyList()
 
     override fun battery(): StatePlugin<StateData.BatteryStatus> = object : StatePlugin<StateData.BatteryStatus> {
-        override val id: String = "${this@IosSystemPlugin.id}.battery"
+        override val id: PluginId = PluginId.SYSTEM
         override val requiredPermissions: List<Permission> = emptyList()
         private val receiver = BatteryStateReceiver {}
-        override val currentState: StateData.BatteryStatus get() = receiver.getCurrentStatus()
+        override val currentState: KSensorResponse<StateData.BatteryStatus> 
+            get() = KSensorResponse(receiver.getCurrentStatus(), PlatformType.iOS)
 
-        override fun observe(): Flow<StateData.BatteryStatus> = callbackFlow {
-            val obs = BatteryStateReceiver { trySend(it) }
+        override fun observe(): Flow<KSensorResponse<StateData.BatteryStatus>> = callbackFlow {
+            val obs = BatteryStateReceiver { trySend(KSensorResponse(it, PlatformType.iOS)) }
             obs.register()
             awaitClose { obs.unregister() }
         }
     }
 
     override fun volume(): StatePlugin<StateData.VolumeStatus> = object : StatePlugin<StateData.VolumeStatus> {
-        override val id: String = "${this@IosSystemPlugin.id}.volume"
+        override val id: PluginId = PluginId.SYSTEM
         override val requiredPermissions: List<Permission> = emptyList()
         private val receiver = VolumeReceiver {}
-        override val currentState: StateData.VolumeStatus get() = StateData.VolumeStatus(receiver.getCurrentVolume())
+        override val currentState: KSensorResponse<StateData.VolumeStatus> 
+            get() = KSensorResponse(StateData.VolumeStatus(receiver.getCurrentVolume()), PlatformType.iOS)
 
-        override fun observe(): Flow<StateData.VolumeStatus> = callbackFlow {
-            val obs = VolumeReceiver { trySend(StateData.VolumeStatus(it)) }
+        override fun observe(): Flow<KSensorResponse<StateData.VolumeStatus>> = callbackFlow {
+            val obs = VolumeReceiver { trySend(KSensorResponse(StateData.VolumeStatus(it), PlatformType.iOS)) }
             obs.register()
             awaitClose { obs.unregister() }
         }
     }
 
     override fun locale(): StatePlugin<StateData.LocaleStatus> = object : StatePlugin<StateData.LocaleStatus> {
-        override val id: String = "${this@IosSystemPlugin.id}.locale"
+        override val id: PluginId = PluginId.SYSTEM
         override val requiredPermissions: List<Permission> = emptyList()
         private val receiver = LocaleReceiver {}
-        override val currentState: StateData.LocaleStatus get() = receiver.getCurrentLocale()
+        override val currentState: KSensorResponse<StateData.LocaleStatus> 
+            get() = KSensorResponse(receiver.getCurrentLocale(), PlatformType.iOS)
 
-        override fun observe(): Flow<StateData.LocaleStatus> = callbackFlow {
-            val obs = LocaleReceiver { trySend(it) }
+        override fun observe(): Flow<KSensorResponse<StateData.LocaleStatus>> = callbackFlow {
+            val obs = LocaleReceiver { trySend(KSensorResponse(it, PlatformType.iOS)) }
             obs.register()
             awaitClose { obs.unregister() }
         }
     }
 
     override fun screen(): StatePlugin<StateData.ScreenStatus> = object : StatePlugin<StateData.ScreenStatus> {
-        override val id: String = "${this@IosSystemPlugin.id}.screen"
+        override val id: PluginId = PluginId.SYSTEM
         override val requiredPermissions: List<Permission> = emptyList()
-        override val currentState: StateData.ScreenStatus get() = StateData.ScreenStatus(true)
+        override val currentState: KSensorResponse<StateData.ScreenStatus> 
+            get() = KSensorResponse(StateData.ScreenStatus(true), PlatformType.iOS)
 
-        override fun observe(): Flow<StateData.ScreenStatus> = callbackFlow {
-            val obs = ScreenStateReceiver { trySend(StateData.ScreenStatus(it)) }
+        override fun observe(): Flow<KSensorResponse<StateData.ScreenStatus>> = callbackFlow {
+            val obs = ScreenStateReceiver { trySend(KSensorResponse(StateData.ScreenStatus(it), PlatformType.iOS)) }
             obs.register()
             awaitClose { obs.unregister() }
         }
     }
 
     override fun lock(): StatePlugin<StateData.LockStatus> = object : StatePlugin<StateData.LockStatus> {
-        override val id: String = "${this@IosSystemPlugin.id}.lock"
+        override val id: PluginId = PluginId.SYSTEM
         override val requiredPermissions: List<Permission> = emptyList()
-        override val currentState: StateData.LockStatus 
-            get() = StateData.LockStatus(!UIApplication.sharedApplication.isProtectedDataAvailable())
+        override val currentState: KSensorResponse<StateData.LockStatus> 
+            get() = KSensorResponse(StateData.LockStatus(!UIApplication.sharedApplication.isProtectedDataAvailable()), PlatformType.iOS)
 
-        override fun observe(): Flow<StateData.LockStatus> = callbackFlow {
+        override fun observe(): Flow<KSensorResponse<StateData.LockStatus>> = callbackFlow {
             val lockObserver = NSNotificationCenter.defaultCenter.addObserverForName(
                 name = UIApplicationProtectedDataWillBecomeUnavailable,
                 `object` = null,
                 queue = NSOperationQueue.mainQueue
-            ) { trySend(StateData.LockStatus(true)) }
+            ) { trySend(KSensorResponse(StateData.LockStatus(true), PlatformType.iOS)) }
 
             val unlockObserver = NSNotificationCenter.defaultCenter.addObserverForName(
                 name = UIApplicationProtectedDataDidBecomeAvailable,
                 `object` = null,
                 queue = NSOperationQueue.mainQueue
-            ) { trySend(StateData.LockStatus(false)) }
+            ) { trySend(KSensorResponse(StateData.LockStatus(false), PlatformType.iOS)) }
 
             awaitClose {
                 NSNotificationCenter.defaultCenter.removeObserver(lockObserver)

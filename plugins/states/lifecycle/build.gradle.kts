@@ -8,6 +8,13 @@ kotlin {
         namespace = "com.ksensor.plugins.states.lifecycle"
         compileSdk = 37
         minSdk = 24
+
+        withHostTestBuilder {
+        }
+
+        withDeviceTestBuilder {
+            sourceSetTreeName = "test"
+        }
     }
 
     val xcfName = "lifecycleStateKit"

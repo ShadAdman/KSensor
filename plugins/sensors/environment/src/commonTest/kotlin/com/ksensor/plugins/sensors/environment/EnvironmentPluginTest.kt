@@ -1,6 +1,7 @@
 package com.ksensor.plugins.sensors.environment
 
 import com.ksensor.core.Permission
+import com.ksensor.core.PluginId
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.model.SensorData
 import kotlinx.coroutines.flow.Flow
@@ -15,7 +16,7 @@ import kotlin.test.assertTrue
 import kotlin.test.assertFalse
 
 class FakeEnvironmentPlugin : EnvironmentPlugin {
-    override val id: String = "fake.environment"
+    override val id: PluginId = PluginId.ENVIRONMENT
     override val requiredPermissions: List<Permission> = emptyList()
 
     val activeObservers = mutableSetOf<String>()

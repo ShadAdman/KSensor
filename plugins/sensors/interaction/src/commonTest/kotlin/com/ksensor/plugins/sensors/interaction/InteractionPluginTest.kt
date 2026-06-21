@@ -1,7 +1,9 @@
 package com.ksensor.plugins.sensors.interaction
 
 import com.ksensor.core.Permission
+import com.ksensor.core.PluginId
 import com.ksensor.core.SensorConfig
+import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.SensorData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -15,13 +17,13 @@ import kotlin.test.assertTrue
 import kotlin.test.assertFalse
 
 class FakeInteractionPlugin : InteractionPlugin {
-    override val id: String = "fake.interaction"
+    override val id: PluginId = PluginId.INTERACTION
     override val requiredPermissions: List<Permission> = emptyList()
 
     val activeObservers = mutableSetOf<String>()
 
-    override fun touchGestures(config: SensorConfig): Flow<SensorData.TouchGestures> = 
-        MutableSharedFlow<SensorData.TouchGestures>().asTrackedFlow("touchGestures")
+    override fun touchGestures(config: SensorConfig): Flow<KSensorResponse<SensorData.TouchGestures>> = 
+        MutableSharedFlow<KSensorResponse<SensorData.TouchGestures>>().asTrackedFlow("touchGestures")
 
     private fun <T> Flow<T>.asTrackedFlow(name: String): Flow<T> {
         return this.onStart { activeObservers.add(name) }

@@ -10,6 +10,11 @@
 
 KSensor is a plugin-based Kotlin Multiplatform library for observing device sensors and system states. Each sensor or state is grouped into its own plugin, allowing you to include only the features you need. This prevents pulling in unnecessary code and permissions.
 
+All data emitted by plugins is wrapped in a `KSensorResponse<T>` which includes:
+- `data`: The actual sensor or state data.
+- `platform`: The platform type (Android or iOS).
+- `timestamp`: The system time when the data was collected.
+
 ## Core Module
 
 The foundation of the library. It is required for all plugins.
@@ -28,7 +33,7 @@ Dependency:
 implementation("io.github.shadadman:ksensor-sensors-motion:2.0.0")
 ```
 
-Representations and Data Models:
+Data Models (Wrapped in `KSensorResponse`):
 
 - Accelerometer: `Accelerometer(values: Vector3)`
 - Gyroscope: `Gyroscope(values: Vector3)`
@@ -44,7 +49,7 @@ Dependency:
 implementation("io.github.shadadman:ksensor-sensors-environment:2.0.0")
 ```
 
-Representations and Data Models:
+Data Models (Wrapped in `KSensorResponse`):
 
 - Barometer: `Barometer(pressure: Float)`
 - Light: `LightIlluminance(illuminance: Float)`
@@ -59,7 +64,7 @@ Dependency:
 implementation("io.github.shadadman:ksensor-sensors-positioning:2.0.0")
 ```
 
-Representations and Data Models:
+Data Models (Wrapped in `KSensorResponse`):
 
 - Location: `Location(latitude: Double?, longitude: Double?, altitude: Double?)`
 - Magnetometer: `Magnetometer(values: Vector3)`
@@ -75,7 +80,7 @@ Dependency:
 implementation("io.github.shadadman:ksensor-sensors-interaction:2.0.0")
 ```
 
-Representations and Data Models:
+Data Models (Wrapped in `KSensorResponse`):
 
 - Touch Gestures: `TouchGestures(x: Float, y: Float, type: TouchGestureType)`
 
@@ -88,7 +93,7 @@ Dependency:
 implementation("io.github.shadadman:ksensor-states-network:2.0.0")
 ```
 
-Representations and Data Models:
+Data Models (Wrapped in `KSensorResponse`):
 
 - Connectivity: `ConnectivityStatus(isConnected: Boolean)`
 - Active Network: `CurrentActiveNetwork(activeNetwork: ActiveNetwork)` (Values: WIFI, CELLULAR, NONE)
@@ -102,7 +107,7 @@ Dependency:
 implementation("io.github.shadadman:ksensor-states-system:2.0.0")
 ```
 
-Representations and Data Models:
+Data Models (Wrapped in `KSensorResponse`):
 
 - Battery: `BatteryStatus(levelPercent: Int?, chargingState: ChargingState, health: BatteryHealth?, temperatureC: Float?)`
 - Volume: `VolumeStatus(volumePercentage: Int)`
@@ -119,7 +124,7 @@ Dependency:
 implementation("io.github.shadadman:ksensor-states-bluetooth:2.0.0")
 ```
 
-Representations and Data Models:
+Data Models (Wrapped in `KSensorResponse`):
 
 - BLE Connections: `BleConnectionStatus(connectedDevices: List<BleDevice>)`
 - BLE Discoveries: `BleDiscoversStatus(discoveredDevices: List<BleDevice>)`
@@ -134,23 +139,24 @@ Dependency:
 implementation("io.github.shadadman:ksensor-states-lifecycle:2.0.0")
 ```
 
-Representations and Data Models:
+Data Models (Wrapped in `KSensorResponse`):
 
 - App Visibility: `AppVisibilityStatus(isAppVisible: Boolean)`
 
 ## Basic Usage
 
-1. Register your plugin implementation (usually via a factory method like `createMotionPlugin()`).
+1. Register your plugin implementation.
 2. Use the `KSensor` registry to retrieve the plugin and observe its data using Kotlin Flow.
 
 Example:
 ```kotlin
-val motionPlugin = createMotionPlugin()
-KSensor.register(motionPlugin)
+// Register a plugin
+KSensor.register(createMotionPlugin())
 
-val motion = KSensor.get<MotionPlugin>("ksensor.sensors.motion")
-motion?.accelerometer()?.collect { data ->
-    // Access data.values.x, data.values.y, data.values.z
+// Retrieve and observe
+val motion = KSensor.get<MotionPlugin>(PluginId.MOTION)
+motion?.accelerometer()?.collect { response ->
+    println("Platform: ${response.platform}, Data: ${response.data}")
 }
 ```
 
