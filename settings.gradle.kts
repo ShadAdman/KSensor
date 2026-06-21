@@ -49,3 +49,5 @@ include(":bundles:system")
 include(":bundles:bluetooth")
 include(":bundles:lifecycle")
 include(":bundles:all")
+
+include(":sample")
