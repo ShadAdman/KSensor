@@ -42,5 +42,12 @@ kotlin {
                 implementation(libs.androidx.lifecycle.process)
             }
         }
+        getByName("androidDeviceTest") {
+            dependencies {
+                implementation(libs.kotlin.test)
+                implementation(libs.androidx.test.junit)
+                implementation(libs.androidx.core)
+            }
+        }
     }
 }

@@ -82,7 +82,7 @@ class IosPositioningPlugin : PositioningPlugin {
                 UIDeviceOrientation.UIDeviceOrientationLandscapeRight -> DeviceOrientation.LANDSCAPE
                 else -> DeviceOrientation.UNKNOWN
             }
-            trySend(SensorData.Orientation(mapped, orientation.toInt()))
+            trySend(SensorData.Orientation(mapped, orientation.value.toInt()))
         }
         awaitClose {
             NSNotificationCenter.defaultCenter.removeObserver(observer)
