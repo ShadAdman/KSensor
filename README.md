@@ -6,166 +6,156 @@
   <img src="ksensor.png" alt="ksensor Poster" width="600" style="border-radius: 50%;"/>
 </p>
 
-## Getting Started
-### Adding dependencies
+# KSensor
 
-Add it in your `commonMain.dependencies` :
+KSensor is a plugin-based Kotlin Multiplatform library for observing device sensors and system states. Each sensor or state is grouped into its own plugin, allowing you to include only the features you need. This prevents pulling in unnecessary code and permissions.
 
-  ```
-  implementation("io.github.shadadman:KSensor:3.80.0")
-  ```
+## Core Module
 
-### Sensors Observation
+The foundation of the library. It is required for all plugins.
 
-- Create a list of sensors you need to observe.
-
-``` kotlin
-val sensors = listof(
-SensorType.ACCELEROMETER,
-SensorType.GYROSCOPE,
-SensorType.MAGNETOMETER,
-SensorType.BAROMETER,
-SensorType.STEP_COUNTER,
-SensorType.STEP_DETECTOR,
-SensorType.LOCATION,
-SensorType.DEVICE_ORIENTATION,
-SensorType.PROXIMITY,
-SensorType.LIGHT,
-SensorType.TOUCH_GESTURES)
+Dependency:
+```kotlin
+implementation("io.github.shadadman:ksensor-core:2.0.0")
 ```
 
-- Register sensors for observation.
+## Motion Sensors Plugin
 
-``` kotlin
-KSensor.registerSensors(
-    types = sensors,
-    locationIntervalMillis = 1000L // Optional
-).collect { sensorUpdate ->
-    when (sensorUpdate) {
-        is SensorUpdate.Data -> // println(it.data, it.platformType)
-        is SensorUpdate.Error -> // Get errors here
-    }
+Provides access to high-frequency hardware sensors for tracking movement.
+
+Dependency:
+```kotlin
+implementation("io.github.shadadman:ksensor-sensors-motion:2.0.0")
+```
+
+Representations and Data Models:
+
+- Accelerometer: `Accelerometer(values: Vector3)`
+- Gyroscope: `Gyroscope(values: Vector3)`
+- Step Counter: `StepCounter(steps: Int)`
+- Step Detector: `StepDetector` (data object)
+
+## Environment Sensors Plugin
+
+Provides data from sensors that monitor the ambient environment.
+
+Dependency:
+```kotlin
+implementation("io.github.shadadman:ksensor-sensors-environment:2.0.0")
+```
+
+Representations and Data Models:
+
+- Barometer: `Barometer(pressure: Float)`
+- Light: `LightIlluminance(illuminance: Float)`
+- Proximity: `Proximity(distanceInCM: Float, isNear: Boolean)`
+
+## Positioning Sensors Plugin
+
+Provides location services and spatial orientation data.
+
+Dependency:
+```kotlin
+implementation("io.github.shadadman:ksensor-sensors-positioning:2.0.0")
+```
+
+Representations and Data Models:
+
+- Location: `Location(latitude: Double?, longitude: Double?, altitude: Double?)`
+- Magnetometer: `Magnetometer(values: Vector3)`
+- Orientation: `Orientation(orientation: DeviceOrientation, orientationInt: Int)`
+- Location Status: `LocationStatus(isLocationOn: Boolean)`
+
+## Interaction Sensors Plugin
+
+Provides high-level data related to user input gestures.
+
+Dependency:
+```kotlin
+implementation("io.github.shadadman:ksensor-sensors-interaction:2.0.0")
+```
+
+Representations and Data Models:
+
+- Touch Gestures: `TouchGestures(x: Float, y: Float, type: TouchGestureType)`
+
+## Network States Plugin
+
+Provides information about the network connectivity of the device.
+
+Dependency:
+```kotlin
+implementation("io.github.shadadman:ksensor-states-network:2.0.0")
+```
+
+Representations and Data Models:
+
+- Connectivity: `ConnectivityStatus(isConnected: Boolean)`
+- Active Network: `CurrentActiveNetwork(activeNetwork: ActiveNetwork)` (Values: WIFI, CELLULAR, NONE)
+
+## System States Plugin
+
+Provides access to general device system states like battery and volume.
+
+Dependency:
+```kotlin
+implementation("io.github.shadadman:ksensor-states-system:2.0.0")
+```
+
+Representations and Data Models:
+
+- Battery: `BatteryStatus(levelPercent: Int?, chargingState: ChargingState, health: BatteryHealth?, temperatureC: Float?)`
+- Volume: `VolumeStatus(volumePercentage: Int)`
+- Locale: `LocaleStatus(languageCode: String, countryCode: String, fullLocaleString: String, displayName: String, isRTL: Boolean)`
+- Screen: `ScreenStatus(isScreenOn: Boolean)`
+- Lock: `LockStatus(isDeviceLocked: Boolean)`
+
+## Bluetooth States Plugin
+
+Provides monitoring for BLE connection and discovery events.
+
+Dependency:
+```kotlin
+implementation("io.github.shadadman:ksensor-states-bluetooth:2.0.0")
+```
+
+Representations and Data Models:
+
+- BLE Connections: `BleConnectionStatus(connectedDevices: List<BleDevice>)`
+- BLE Discoveries: `BleDiscoversStatus(discoveredDevices: List<BleDevice>)`
+- BLE Device: `BleDevice(id: String, name: String)`
+
+## Lifecycle States Plugin
+
+Tracks the visibility and lifecycle state of the application.
+
+Dependency:
+```kotlin
+implementation("io.github.shadadman:ksensor-states-lifecycle:2.0.0")
+```
+
+Representations and Data Models:
+
+- App Visibility: `AppVisibilityStatus(isAppVisible: Boolean)`
+
+## Basic Usage
+
+1. Register your plugin implementation (usually via a factory method like `createMotionPlugin()`).
+2. Use the `KSensor` registry to retrieve the plugin and observe its data using Kotlin Flow.
+
+Example:
+```kotlin
+val motionPlugin = createMotionPlugin()
+KSensor.register(motionPlugin)
+
+val motion = KSensor.get<MotionPlugin>("ksensor.sensors.motion")
+motion?.accelerometer()?.collect { data ->
+    // Access data.values.x, data.values.y, data.values.z
 }
 ```
 
-- Unregister sensors when no longer needed.
+## License
 
-``` kotlin
-KSensor.unregisterSensors(sensors)
-```
-
-Each `SensorUpdate` has a `platformType` so you know the sensor data comes from Android or iOS.
-
-Each `SensorUpdate` has a `timestamp` so you know when the data was collected.
-
-- Sensor Data Models, represents the `sensorUpdate.data`:
-``` kotlin
-Accelerometer(val x: Float, val y: Float,val z: Float)
-Gyroscope(val x: Float, val y: Float, val z: Float)
-Magnetometer(val x: Float, val y: Float, val z: Float)
-Barometer(val pressure: Float)
-StepCounter(val steps: Int)
-StepDetector()
-Location(val lat: Double? = null, val lon: Double? = null, val alt: Double? = null)
-Orientation(val orientation: DeviceOrientation,val orientationInt: Int = 0)
-Proximity(val distanceInCM: Float, val isNear: Boolean)
-LightIlluminance(val illuminance: Float)
-TouchGestures(val x: Float,val y: Float,val type: TouchGestureType)
-```
-
-### States Observation
-
-- Just like sensors, create a list of states that you need to observe.
-
-``` kotlin
-val states = listOf(
-StateType.APP_VISIBILITY,
-StateType.CONNECTIVITY,
-StateType.ACTIVE_NETWORK,
-StateType.LOCATION,
-StateType.SCREEN_STATE
-StateType.VOLUME,
-StateType.LOCALE,
-StateType.BATTERY,
-StateType.LOCK,
-StateType.BLE_CONNECTIONS,
-StateType.BLE_DISCOVERS)
-```
-
-- Add observers.
-
-``` kotlin
-KState.addObserver(types = states).collect{ stateUpdate->
-   when(stateUpdate){
-	is StateUpdate.Data-> // println(it.data, it.platformType)
-	is StateUpdate.Error-> // Get errors here
-   }
-}
-```
-
-- Remove observer when no longer needed.
-
-``` kotlin
-KState.removeObserver(states)
-```
-
-Each `StateUpdate` has a `platformType` so you know the state data comes from Android or iOS.
-
-- State Data Models, represent the `StateUpdate.data`:
-``` kotlin
-- AppVisibilityStatus(val isAppVisible: Boolean)
-- LocationStatus(val isLocationOn: Boolean)
-- ScreenStatus(val isScreenOn: Boolean)
-- LockStatus(val isDeviceLocked: Boolean)
-- CurrentActiveNetwork(val activeNetwork: ActiveNetwork)
-- ConnectivityStatus(val isConnected: Boolean)
-- VolumeStatus(val volumePercentage: Int)
-- LocaleInfo(
-        val languageCode: String,
-        val countryCode: String,
-        val fullLocaleString: String,
-        val displayName: String,
-        val isRTL: Boolean
-)
-- data class BatteryStatus(
-        val levelPercent: Int?,
-        val chargingState: ChargingState,
-        val health: BatteryHealth?,
-        val temperatureC: Float?
-    ){
-        enum class ChargingState { UNKNOWN, DISCHARGING, CHARGING, FULL }
-        enum class BatteryHealth { UNKNOWN, GOOD, OVERHEAT, DEAD, OVER_VOLTAGE, UNSPECIFIED_FAILURE, COLD }
-  }
-- data class BleConnectionStatus(val connectedDevices: List<BleDevice>)
-- data class BleDiscoversStatus(val discoveredDevices: List<BleDevice>)
-- data class BleDevice(val id: String, val name: String)
-```
-
-
-#### Permissions
-
-If you are observing location you need `FINE_LOCATION` and `COARSE_LOCATION` permissions on Android.
-You can handle these permissions yourself or let the library handle them for you:
-``` kotlin
-    //Put this in AndroidManifest
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-```
-
-- Inside a composable call:
-
-``` kotlin
-KSensor.AskPermission(PermissionType.LOCATION) { status ->
-    when (status) {
-        PermissionStatus.Granted -> println("Permission Granted")
-        PermissionStatus.Denied -> println("Permission Denied")
-    }
-}
-```
-Note that the iOS location permission is handled by the library itself.
-
-
-```
 Copyright (c) 2025 KSensor
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
@@ -178,6 +168,3 @@ ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
 WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-```
-
-
