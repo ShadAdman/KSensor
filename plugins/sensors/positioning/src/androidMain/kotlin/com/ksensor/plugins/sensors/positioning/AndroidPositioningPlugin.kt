@@ -2,6 +2,7 @@ package com.ksensor.plugins.sensors.positioning
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.IntentFilter
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -12,9 +13,11 @@ import android.location.LocationManager
 import android.view.OrientationEventListener
 import com.ksensor.core.Permission
 import com.ksensor.core.SensorConfig
+import com.ksensor.core.StatePlugin
 import com.ksensor.core.context.KSensorContext
 import com.ksensor.core.model.DeviceOrientation
 import com.ksensor.core.model.SensorData
+import com.ksensor.core.model.StateData
 import com.ksensor.core.model.Vector3
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -83,6 +86,21 @@ class AndroidPositioningPlugin : PositioningPlugin {
         }
         listener.enable()
         awaitClose { listener.disable() }
+    }
+
+    override fun locationStatus(): StatePlugin<StateData.LocationStatus> = object : StatePlugin<StateData.LocationStatus> {
+        override val id: String = "${this@AndroidPositioningPlugin.id}.status"
+        override val requiredPermissions: List<Permission> = emptyList()
+        override val currentState: StateData.LocationStatus
+            get() = StateData.LocationStatus(locationManager.isLocationEnabled)
+
+        override fun observe(): Flow<StateData.LocationStatus> = callbackFlow {
+            val receiver = LocationProviderReceiver {
+                trySend(StateData.LocationStatus(locationManager.isLocationEnabled))
+            }
+            context.registerReceiver(receiver, IntentFilter(LocationManager.MODE_CHANGED_ACTION))
+            awaitClose { context.unregisterReceiver(receiver) }
+        }
     }
 }
 

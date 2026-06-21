@@ -2,8 +2,10 @@ package com.ksensor.plugins.sensors.positioning
 
 import com.ksensor.core.Permission
 import com.ksensor.core.SensorConfig
+import com.ksensor.core.StatePlugin
 import com.ksensor.core.model.DeviceOrientation
 import com.ksensor.core.model.SensorData
+import com.ksensor.core.model.StateData
 import com.ksensor.core.model.Vector3
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
@@ -13,12 +15,12 @@ import kotlinx.coroutines.flow.callbackFlow
 import platform.CoreLocation.CLLocation
 import platform.CoreLocation.CLLocationManager
 import platform.CoreLocation.CLLocationManagerDelegateProtocol
+import platform.CoreLocation.kCLAuthorizationStatusDenied
+import platform.CoreLocation.kCLAuthorizationStatusRestricted
 import platform.CoreMotion.CMMotionManager
-import platform.Foundation.NSDate
 import platform.Foundation.NSError
 import platform.Foundation.NSNotificationCenter
 import platform.Foundation.NSOperationQueue
-import platform.Foundation.timeIntervalSince1970
 import platform.UIKit.UIDevice
 import platform.UIKit.UIDeviceOrientation
 import platform.UIKit.UIDeviceOrientationDidChangeNotification
@@ -42,9 +44,7 @@ class IosPositioningPlugin : PositioningPlugin {
                     }
                 }
             }
-            override fun locationManager(manager: CLLocationManager, didFailWithError: NSError) {
-                // Handle error
-            }
+            override fun locationManager(manager: CLLocationManager, didFailWithError: NSError) {}
         }
         locationManager.delegate = delegate
         locationManager.requestWhenInUseAuthorization()
@@ -87,6 +87,24 @@ class IosPositioningPlugin : PositioningPlugin {
         awaitClose {
             NSNotificationCenter.defaultCenter.removeObserver(observer)
             UIDevice.currentDevice.endGeneratingDeviceOrientationNotifications()
+        }
+    }
+
+    override fun locationStatus(): StatePlugin<StateData.LocationStatus> = object : StatePlugin<StateData.LocationStatus> {
+        override val id: String = "${this@IosPositioningPlugin.id}.status"
+        override val requiredPermissions: List<Permission> = emptyList()
+        override val currentState: StateData.LocationStatus
+            get() = StateData.LocationStatus(isLocationCurrentlyEnabled())
+
+        override fun observe(): Flow<StateData.LocationStatus> = callbackFlow {
+            val receiver = LocationProviderReceiver { trySend(StateData.LocationStatus(it)) }
+            awaitClose { receiver.dispose() }
+        }
+
+        private fun isLocationCurrentlyEnabled(): Boolean {
+            return CLLocationManager.locationServicesEnabled() &&
+                    CLLocationManager.authorizationStatus() != kCLAuthorizationStatusDenied &&
+                    CLLocationManager.authorizationStatus() != kCLAuthorizationStatusRestricted
         }
     }
 }
