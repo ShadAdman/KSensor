@@ -29,10 +29,15 @@ class AndroidMotionPlugin : MotionPlugin {
             return@callbackFlow
         }
 
+        val maximumRange = sensor.maximumRange
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
                 val data = SensorData.Accelerometer(
-                    Vector3(event.values[0], event.values[1], event.values[2])
+                    Vector3(
+                        event.values[0] / maximumRange,
+                        event.values[1] / maximumRange,
+                        event.values[2] / maximumRange
+                    )
                 )
                 trySend(data)
             }
@@ -73,8 +78,7 @@ class AndroidMotionPlugin : MotionPlugin {
 
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
-                val data = SensorData.StepCounter(event.values[0].toInt())
-                trySend(data)
+                trySend(SensorData.StepCounter(event.values[0].toInt()))
             }
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
