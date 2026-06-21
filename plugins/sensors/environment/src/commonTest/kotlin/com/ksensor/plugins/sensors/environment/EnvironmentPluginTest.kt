@@ -3,6 +3,7 @@ package com.ksensor.plugins.sensors.environment
 import com.ksensor.core.Permission
 import com.ksensor.core.PluginId
 import com.ksensor.core.SensorConfig
+import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.SensorData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -21,14 +22,14 @@ class FakeEnvironmentPlugin : EnvironmentPlugin {
 
     val activeObservers = mutableSetOf<String>()
 
-    override fun barometer(config: SensorConfig): Flow<SensorData.Barometer> = 
-        MutableSharedFlow<SensorData.Barometer>().asTrackedFlow("barometer")
+    override fun barometer(config: SensorConfig): Flow<KSensorResponse<SensorData.Barometer>> =
+        MutableSharedFlow<KSensorResponse<SensorData.Barometer>>().asTrackedFlow("Barometer")
 
-    override fun light(config: SensorConfig): Flow<SensorData.LightIlluminance> = 
-        MutableSharedFlow<SensorData.LightIlluminance>().asTrackedFlow("light")
+    override fun light(config: SensorConfig): Flow<KSensorResponse<SensorData.LightIlluminance>> =
+        MutableSharedFlow<KSensorResponse<SensorData.LightIlluminance>>().asTrackedFlow("lightIlluminance")
 
-    override fun proximity(config: SensorConfig): Flow<SensorData.Proximity> = 
-        MutableSharedFlow<SensorData.Proximity>().asTrackedFlow("proximity")
+    override fun proximity(config: SensorConfig): Flow<KSensorResponse<SensorData.Proximity>> =
+        MutableSharedFlow<KSensorResponse<SensorData.Proximity>>().asTrackedFlow("proximity")
 
     private fun <T> Flow<T>.asTrackedFlow(name: String): Flow<T> {
         return this.onStart { activeObservers.add(name) }
