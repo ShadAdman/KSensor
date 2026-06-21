@@ -1,7 +1,6 @@
 package com.ksensor.plugins.sensors.environment
 
 import com.ksensor.core.Permission
-import com.ksensor.core.PlatformType
 import com.ksensor.core.PluginId
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.model.KSensorResponse
@@ -34,7 +33,7 @@ class IosEnvironmentPlugin : EnvironmentPlugin {
         altimeter.startRelativeAltitudeUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
             data?.let {
                 val sensorData = SensorData.Barometer(it.pressure.doubleValue.toFloat())
-                trySend(KSensorResponse(sensorData, PlatformType.iOS))
+                trySend(KSensorResponse(sensorData))
             }
         }
         awaitClose { altimeter.stopRelativeAltitudeUpdates() }
@@ -47,7 +46,7 @@ class IosEnvironmentPlugin : EnvironmentPlugin {
             block = {
                 val brightness = UIScreen.mainScreen.brightness.toFloat()
                 val sensorData = SensorData.LightIlluminance(brightness * 1000f)
-                trySend(KSensorResponse(sensorData, PlatformType.iOS))
+                trySend(KSensorResponse(sensorData))
             }
         )
         NSRunLoop.mainRunLoop.addTimer(timer, NSRunLoopCommonModes)
@@ -64,7 +63,7 @@ class IosEnvironmentPlugin : EnvironmentPlugin {
             usingBlock = {
                 val isNear = device.proximityState
                 val sensorData = SensorData.Proximity(if (isNear) 0f else -1f, isNear)
-                trySend(KSensorResponse(sensorData, PlatformType.iOS))
+                trySend(KSensorResponse(sensorData))
             }
         )
         awaitClose {

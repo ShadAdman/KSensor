@@ -5,7 +5,6 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import com.ksensor.core.Permission
-import com.ksensor.core.PlatformType
 import com.ksensor.core.PluginId
 import com.ksensor.core.StatePlugin
 import com.ksensor.core.context.KSensorContext
@@ -27,11 +26,11 @@ class AndroidNetworkPlugin : NetworkPlugin {
         override val id: PluginId = PluginId.NETWORK
         override val requiredPermissions: List<Permission> = emptyList()
         override val currentState: KSensorResponse<StateData.ConnectivityStatus>
-            get() = KSensorResponse(StateData.ConnectivityStatus(isConnected()), PlatformType.Android)
+            get() = KSensorResponse(StateData.ConnectivityStatus(isConnected()))
 
         override fun observe(): Flow<KSensorResponse<StateData.ConnectivityStatus>> = callbackFlow {
             val monitor = ConnectivityMonitor(
-                onStatusChanged = { trySend(KSensorResponse(StateData.ConnectivityStatus(it), PlatformType.Android)) },
+                onStatusChanged = { trySend(KSensorResponse(StateData.ConnectivityStatus(it))) },
                 onActiveNetworkChanged = {}
             )
             connectivityManager.registerDefaultNetworkCallback(monitor)
@@ -43,12 +42,12 @@ class AndroidNetworkPlugin : NetworkPlugin {
         override val id: PluginId = PluginId.NETWORK
         override val requiredPermissions: List<Permission> = emptyList()
         override val currentState: KSensorResponse<StateData.CurrentActiveNetwork>
-            get() = KSensorResponse(StateData.CurrentActiveNetwork(getActiveNetworkType()), PlatformType.Android)
+            get() = KSensorResponse(StateData.CurrentActiveNetwork(getActiveNetworkType()))
 
         override fun observe(): Flow<KSensorResponse<StateData.CurrentActiveNetwork>> = callbackFlow {
             val monitor = ConnectivityMonitor(
                 onStatusChanged = {},
-                onActiveNetworkChanged = { trySend(KSensorResponse(StateData.CurrentActiveNetwork(it), PlatformType.Android)) }
+                onActiveNetworkChanged = { trySend(KSensorResponse(StateData.CurrentActiveNetwork(it))) }
             )
             val request = NetworkRequest.Builder()
                 .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)

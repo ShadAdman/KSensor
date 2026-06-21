@@ -1,7 +1,6 @@
 package com.ksensor.plugins.sensors.positioning
 
 import com.ksensor.core.Permission
-import com.ksensor.core.PlatformType
 import com.ksensor.core.PluginId
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.StatePlugin
@@ -44,7 +43,7 @@ class IosPositioningPlugin : PositioningPlugin {
                 loc?.let {
                     it.coordinate.useContents {
                         val sensorData = SensorData.Location(latitude, longitude, it.altitude)
-                        trySend(KSensorResponse(sensorData, PlatformType.iOS))
+                        trySend(KSensorResponse(sensorData))
                     }
                 }
             }
@@ -66,7 +65,7 @@ class IosPositioningPlugin : PositioningPlugin {
         motionManager.startMagnetometerUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
             data?.magneticField?.useContents {
                 val sensorData = SensorData.Magnetometer(Vector3(x.toFloat(), y.toFloat(), z.toFloat()))
-                trySend(KSensorResponse(sensorData, PlatformType.iOS))
+                trySend(KSensorResponse(sensorData))
             }
         }
         awaitClose { motionManager.stopMagnetometerUpdates() }
@@ -88,7 +87,7 @@ class IosPositioningPlugin : PositioningPlugin {
                 else -> DeviceOrientation.UNKNOWN
             }
             val sensorData = SensorData.Orientation(mapped, orientation.value.toInt())
-            trySend(KSensorResponse(sensorData, PlatformType.iOS))
+            trySend(KSensorResponse(sensorData))
         }
         awaitClose {
             NSNotificationCenter.defaultCenter.removeObserver(observer)
@@ -100,11 +99,11 @@ class IosPositioningPlugin : PositioningPlugin {
         override val id: PluginId = PluginId.POSITIONING
         override val requiredPermissions: List<Permission> = emptyList()
         override val currentState: KSensorResponse<StateData.LocationStatus>
-            get() = KSensorResponse(StateData.LocationStatus(isLocationCurrentlyEnabled()), PlatformType.iOS)
+            get() = KSensorResponse(StateData.LocationStatus(isLocationCurrentlyEnabled()))
 
         override fun observe(): Flow<KSensorResponse<StateData.LocationStatus>> = callbackFlow {
             val receiver = LocationProviderReceiver {
-                trySend(KSensorResponse(StateData.LocationStatus(it), PlatformType.iOS))
+                trySend(KSensorResponse(StateData.LocationStatus(it)))
             }
             awaitClose { receiver.dispose() }
         }

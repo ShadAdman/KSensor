@@ -1,7 +1,6 @@
 package com.ksensor.plugins.states.lifecycle
 
 import com.ksensor.core.Permission
-import com.ksensor.core.PlatformType
 import com.ksensor.core.PluginId
 import com.ksensor.core.StatePlugin
 import com.ksensor.core.model.KSensorResponse
@@ -21,20 +20,20 @@ class IosLifecyclePlugin : LifecyclePlugin {
     override fun appVisibility(): StatePlugin<StateData.AppVisibilityStatus> = object : StatePlugin<StateData.AppVisibilityStatus> {
         override val id: PluginId = PluginId.LIFECYCLE
         override val requiredPermissions: List<Permission> = emptyList()
-        override val currentState: KSensorResponse<StateData.AppVisibilityStatus> = KSensorResponse(StateData.AppVisibilityStatus(true), PlatformType.iOS)
+        override val currentState: KSensorResponse<StateData.AppVisibilityStatus> = KSensorResponse(StateData.AppVisibilityStatus(true))
 
         override fun observe(): Flow<KSensorResponse<StateData.AppVisibilityStatus>> = callbackFlow {
             val foregroundObserver = NSNotificationCenter.defaultCenter.addObserverForName(
                 name = UIApplicationWillEnterForegroundNotification,
                 `object` = null,
                 queue = NSOperationQueue.mainQueue
-            ) { trySend(KSensorResponse(StateData.AppVisibilityStatus(true), PlatformType.iOS)) }
+            ) { trySend(KSensorResponse(StateData.AppVisibilityStatus(true))) }
 
             val backgroundObserver = NSNotificationCenter.defaultCenter.addObserverForName(
                 name = UIApplicationDidEnterBackgroundNotification,
                 `object` = null,
                 queue = NSOperationQueue.mainQueue
-            ) { trySend(KSensorResponse(StateData.AppVisibilityStatus(false), PlatformType.iOS)) }
+            ) { trySend(KSensorResponse(StateData.AppVisibilityStatus(false))) }
 
             awaitClose {
                 NSNotificationCenter.defaultCenter.removeObserver(foregroundObserver)

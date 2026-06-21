@@ -6,7 +6,6 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import com.ksensor.core.Permission
-import com.ksensor.core.PlatformType
 import com.ksensor.core.PluginId
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.context.KSensorContext
@@ -42,7 +41,7 @@ class AndroidMotionPlugin : MotionPlugin {
                         event.values[2] / maximumRange
                     )
                 )
-                trySend(KSensorResponse(data, PlatformType.Android))
+                trySend(KSensorResponse(data))
             }
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
@@ -63,7 +62,7 @@ class AndroidMotionPlugin : MotionPlugin {
                 val data = SensorData.Gyroscope(
                     Vector3(event.values[0], event.values[1], event.values[2])
                 )
-                trySend(KSensorResponse(data, PlatformType.Android))
+                trySend(KSensorResponse(data))
             }
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
@@ -82,7 +81,7 @@ class AndroidMotionPlugin : MotionPlugin {
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
                 val data = SensorData.StepCounter(event.values[0].toInt())
-                trySend(KSensorResponse(data, PlatformType.Android))
+                trySend(KSensorResponse(data))
             }
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
@@ -100,7 +99,7 @@ class AndroidMotionPlugin : MotionPlugin {
 
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
-                trySend(KSensorResponse(SensorData.StepDetector, PlatformType.Android))
+                trySend(KSensorResponse(SensorData.StepDetector))
             }
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }

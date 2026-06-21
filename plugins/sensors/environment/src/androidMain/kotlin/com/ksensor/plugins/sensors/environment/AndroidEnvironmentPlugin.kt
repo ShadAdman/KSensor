@@ -6,7 +6,6 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import com.ksensor.core.Permission
-import com.ksensor.core.PlatformType
 import com.ksensor.core.PluginId
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.context.KSensorContext
@@ -32,7 +31,7 @@ class AndroidEnvironmentPlugin : EnvironmentPlugin {
         }
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
-                trySend(KSensorResponse(SensorData.Barometer(event.values[0]), PlatformType.Android))
+                trySend(KSensorResponse(SensorData.Barometer(event.values[0])))
             }
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
@@ -48,7 +47,7 @@ class AndroidEnvironmentPlugin : EnvironmentPlugin {
         }
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
-                trySend(KSensorResponse(SensorData.LightIlluminance(event.values[0]), PlatformType.Android))
+                trySend(KSensorResponse(SensorData.LightIlluminance(event.values[0])))
             }
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
@@ -65,7 +64,7 @@ class AndroidEnvironmentPlugin : EnvironmentPlugin {
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
                 val distance = event.values[0]
-                trySend(KSensorResponse(SensorData.Proximity(distance, distance < sensor.maximumRange), PlatformType.Android))
+                trySend(KSensorResponse(SensorData.Proximity(distance, distance < sensor.maximumRange)))
             }
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }

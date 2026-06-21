@@ -156,7 +156,7 @@ KSensor.register(createMotionPlugin())
 // Retrieve and observe
 val motion = KSensor.get<MotionPlugin>(PluginId.MOTION)
 motion?.accelerometer()?.collect { response ->
-    println("Platform: ${response.platform}, Data: ${response.data}")
+    println("Platform: ${response.platform}, Data: ${response.data}, timestamp: ${response.timestamp}")
 }
 ```
 

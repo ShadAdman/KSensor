@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.media.AudioManager
 import com.ksensor.core.Permission
-import com.ksensor.core.PlatformType
 import com.ksensor.core.PluginId
 import com.ksensor.core.StatePlugin
 import com.ksensor.core.context.KSensorContext
@@ -26,10 +25,10 @@ class AndroidSystemPlugin : SystemPlugin {
         override val id: PluginId = PluginId.SYSTEM
         override val requiredPermissions: List<Permission> = emptyList()
         override val currentState: KSensorResponse<StateData.BatteryStatus>
-            get() = KSensorResponse(BatteryStateReceiver.getCurrentStatus(context), PlatformType.Android)
+            get() = KSensorResponse(BatteryStateReceiver.getCurrentStatus(context))
 
         override fun observe(): Flow<KSensorResponse<StateData.BatteryStatus>> = callbackFlow {
-            val receiver = BatteryStateReceiver { trySend(KSensorResponse(it, PlatformType.Android)) }
+            val receiver = BatteryStateReceiver { trySend(KSensorResponse(it)) }
             context.registerReceiver(receiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
             awaitClose { context.unregisterReceiver(receiver) }
         }
@@ -40,10 +39,10 @@ class AndroidSystemPlugin : SystemPlugin {
         override val requiredPermissions: List<Permission> = emptyList()
         private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         override val currentState: KSensorResponse<StateData.VolumeStatus>
-            get() = KSensorResponse(StateData.VolumeStatus(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)), PlatformType.Android)
+            get() = KSensorResponse(StateData.VolumeStatus(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)))
 
         override fun observe(): Flow<KSensorResponse<StateData.VolumeStatus>> = callbackFlow {
-            val receiver = VolumeReceiver(audioManager) { trySend(KSensorResponse(StateData.VolumeStatus(it), PlatformType.Android)) }
+            val receiver = VolumeReceiver(audioManager) { trySend(KSensorResponse(StateData.VolumeStatus(it))) }
             context.registerReceiver(receiver, IntentFilter(VOLUME_CHANGED_ACTION))
             awaitClose { context.unregisterReceiver(receiver) }
         }
@@ -54,10 +53,10 @@ class AndroidSystemPlugin : SystemPlugin {
         override val requiredPermissions: List<Permission> = emptyList()
         private val receiver = LocaleReceiver(context) {}
         override val currentState: KSensorResponse<StateData.LocaleStatus>
-            get() = KSensorResponse(receiver.getCurrentLocale(), PlatformType.Android)
+            get() = KSensorResponse(receiver.getCurrentLocale())
 
         override fun observe(): Flow<KSensorResponse<StateData.LocaleStatus>> = callbackFlow {
-            val obs = LocaleReceiver(context) { trySend(KSensorResponse(it, PlatformType.Android)) }
+            val obs = LocaleReceiver(context) { trySend(KSensorResponse(it)) }
             context.registerReceiver(obs, IntentFilter(Intent.ACTION_LOCALE_CHANGED))
             awaitClose { context.unregisterReceiver(obs) }
         }
@@ -67,12 +66,12 @@ class AndroidSystemPlugin : SystemPlugin {
         override val id: PluginId = PluginId.SYSTEM
         override val requiredPermissions: List<Permission> = emptyList()
         override val currentState: KSensorResponse<StateData.ScreenStatus>
-            get() = KSensorResponse(StateData.ScreenStatus(true), PlatformType.Android) // Approximate
+            get() = KSensorResponse(StateData.ScreenStatus(true)) // Approximate
 
         override fun observe(): Flow<KSensorResponse<StateData.ScreenStatus>> = callbackFlow {
             val receiver = ScreenStateReceiver(
-                onScreenOn = { trySend(KSensorResponse(StateData.ScreenStatus(true), PlatformType.Android)) },
-                onScreenOff = { trySend(KSensorResponse(StateData.ScreenStatus(false), PlatformType.Android)) }
+                onScreenOn = { trySend(KSensorResponse(StateData.ScreenStatus(true))) },
+                onScreenOff = { trySend(KSensorResponse(StateData.ScreenStatus(false))) }
             )
             val filter = IntentFilter().apply {
                 addAction(Intent.ACTION_SCREEN_ON)
@@ -88,12 +87,12 @@ class AndroidSystemPlugin : SystemPlugin {
         override val requiredPermissions: List<Permission> = emptyList()
         private val keyguardManager = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
         override val currentState: KSensorResponse<StateData.LockStatus>
-            get() = KSensorResponse(StateData.LockStatus(keyguardManager.isDeviceLocked), PlatformType.Android)
+            get() = KSensorResponse(StateData.LockStatus(keyguardManager.isDeviceLocked))
 
         override fun observe(): Flow<KSensorResponse<StateData.LockStatus>> = callbackFlow {
             val receiver = ScreenStateReceiver(
-                onScreenOff = { trySend(KSensorResponse(StateData.LockStatus(keyguardManager.isDeviceSecure), PlatformType.Android)) },
-                onUserPresent = { trySend(KSensorResponse(StateData.LockStatus(false), PlatformType.Android)) }
+                onScreenOff = { trySend(KSensorResponse(StateData.LockStatus(keyguardManager.isDeviceSecure))) },
+                onUserPresent = { trySend(KSensorResponse(StateData.LockStatus(false))) }
             )
             val filter = IntentFilter().apply {
                 addAction(Intent.ACTION_SCREEN_OFF)

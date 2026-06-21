@@ -1,6 +1,7 @@
 package com.ksensor.core.model
 
 import com.ksensor.core.PlatformType
+import com.ksensor.core.currentPlatform
 import com.ksensor.core.currentTimestamp
 
 /**
@@ -8,6 +9,6 @@ import com.ksensor.core.currentTimestamp
  */
 data class KSensorResponse<T>(
     val data: T,
-    val platform: PlatformType,
+    val platform: PlatformType = currentPlatform(),
     val timestamp: Long = currentTimestamp()
 )

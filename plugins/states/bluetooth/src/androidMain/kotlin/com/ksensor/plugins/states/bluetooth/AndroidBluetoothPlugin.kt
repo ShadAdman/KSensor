@@ -2,7 +2,6 @@ package com.ksensor.plugins.states.bluetooth
 
 import android.content.Context
 import com.ksensor.core.Permission
-import com.ksensor.core.PlatformType
 import com.ksensor.core.PluginId
 import com.ksensor.core.StatePlugin
 import com.ksensor.core.context.KSensorContext
@@ -22,10 +21,10 @@ class AndroidBluetoothPlugin : BluetoothPlugin {
         override val id: PluginId = PluginId.BLUETOOTH
         override val requiredPermissions: List<Permission> = listOf(Permission.BLUETOOTH)
         override val currentState: KSensorResponse<StateData.BleConnectionStatus>
-            get() = KSensorResponse(StateData.BleConnectionStatus(emptyList()), PlatformType.Android) // Placeholder
+            get() = KSensorResponse(StateData.BleConnectionStatus(emptyList())) // Placeholder
 
         override fun observe(): Flow<KSensorResponse<StateData.BleConnectionStatus>> = callbackFlow {
-            val receiver = BleConnectionReceiver(context) { trySend(KSensorResponse(it, PlatformType.Android)) }
+            val receiver = BleConnectionReceiver(context) { trySend(KSensorResponse(it)) }
             receiver.register()
             awaitClose { receiver.unregister() }
         }
@@ -34,10 +33,10 @@ class AndroidBluetoothPlugin : BluetoothPlugin {
     override fun discoveries(): StatePlugin<StateData.BleDiscoversStatus> = object : StatePlugin<StateData.BleDiscoversStatus> {
         override val id: PluginId = PluginId.BLUETOOTH
         override val requiredPermissions: List<Permission> = listOf(Permission.BLUETOOTH)
-        override val currentState: KSensorResponse<StateData.BleDiscoversStatus> = KSensorResponse(StateData.BleDiscoversStatus(emptyList()), PlatformType.Android)
+        override val currentState: KSensorResponse<StateData.BleDiscoversStatus> = KSensorResponse(StateData.BleDiscoversStatus(emptyList()))
         
         override fun observe(): Flow<KSensorResponse<StateData.BleDiscoversStatus>> = callbackFlow {
-            val receiver = BleDiscoversReceiver(context, { trySend(KSensorResponse(it, PlatformType.Android)) }, { close(it) })
+            val receiver = BleDiscoversReceiver(context, { trySend(KSensorResponse(it)) }, { close(it) })
             receiver.register()
             awaitClose { receiver.unregister() }
         }

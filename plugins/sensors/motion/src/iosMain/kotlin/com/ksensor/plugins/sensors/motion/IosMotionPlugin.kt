@@ -1,7 +1,6 @@
 package com.ksensor.plugins.sensors.motion
 
 import com.ksensor.core.Permission
-import com.ksensor.core.PlatformType
 import com.ksensor.core.PluginId
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.model.KSensorResponse
@@ -36,7 +35,7 @@ class IosMotionPlugin : MotionPlugin {
         motionManager.startAccelerometerUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
             data?.acceleration?.useContents {
                 val sensorData = SensorData.Accelerometer(Vector3(x.toFloat(), y.toFloat(), z.toFloat()))
-                trySend(KSensorResponse(sensorData, PlatformType.iOS))
+                trySend(KSensorResponse(sensorData))
             }
         }
 
@@ -54,7 +53,7 @@ class IosMotionPlugin : MotionPlugin {
         motionManager.startGyroUpdatesToQueue(NSOperationQueue.mainQueue()) { data, _ ->
             data?.rotationRate?.useContents {
                 val sensorData = SensorData.Gyroscope(Vector3(x.toFloat(), y.toFloat(), z.toFloat()))
-                trySend(KSensorResponse(sensorData, PlatformType.iOS))
+                trySend(KSensorResponse(sensorData))
             }
         }
 
@@ -70,7 +69,7 @@ class IosMotionPlugin : MotionPlugin {
         pedometer.startPedometerUpdatesFromDate(NSDate()) { data, _ ->
             data?.let {
                 val sensorData = SensorData.StepCounter(it.numberOfSteps.intValue)
-                trySend(KSensorResponse(sensorData, PlatformType.iOS))
+                trySend(KSensorResponse(sensorData))
             }
         }
 
@@ -85,7 +84,7 @@ class IosMotionPlugin : MotionPlugin {
 
         pedometer.startPedometerUpdatesFromDate(NSDate()) { data, _ ->
             if (data != null) {
-                trySend(KSensorResponse(SensorData.StepDetector, PlatformType.iOS))
+                trySend(KSensorResponse(SensorData.StepDetector))
             }
         }
 

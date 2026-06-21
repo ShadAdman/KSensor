@@ -1,7 +1,6 @@
 package com.ksensor.plugins.sensors.interaction
 
 import com.ksensor.core.Permission
-import com.ksensor.core.PlatformType
 import com.ksensor.core.PluginId
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.model.KSensorResponse
@@ -16,7 +15,7 @@ class AndroidInteractionPlugin : InteractionPlugin {
 
     override fun touchGestures(config: SensorConfig): Flow<KSensorResponse<SensorData.TouchGestures>> = callbackFlow {
         TouchGesturesMonitor.registerObserver {
-            trySend(KSensorResponse(it, PlatformType.Android))
+            trySend(KSensorResponse(it))
         }
         awaitClose { TouchGesturesMonitor.removeObserver() }
     }
