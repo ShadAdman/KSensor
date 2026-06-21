@@ -1,9 +1,7 @@
 package com.ksensor.plugins.states.network
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.net.ConnectivityManager
-import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import com.ksensor.core.Permission
@@ -22,55 +20,38 @@ class AndroidNetworkPlugin : NetworkPlugin {
         KSensorContext.get().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     }
 
-    override fun connectivity(): StatePlugin<StateData.ConnectivityStatus> {
-        return object : StatePlugin<StateData.ConnectivityStatus> {
-            override val id: String = "${this@AndroidNetworkPlugin.id}.connectivity"
-            override val requiredPermissions: List<Permission> = emptyList()
-            override val currentState: StateData.ConnectivityStatus
-                get() = StateData.ConnectivityStatus(isConnected())
+    override fun connectivity(): StatePlugin<StateData.ConnectivityStatus> = object : StatePlugin<StateData.ConnectivityStatus> {
+        override val id: String = "${this@AndroidNetworkPlugin.id}.connectivity"
+        override val requiredPermissions: List<Permission> = emptyList()
+        override val currentState: StateData.ConnectivityStatus
+            get() = StateData.ConnectivityStatus(isConnected())
 
-            override fun observe(): Flow<StateData.ConnectivityStatus> = callbackFlow {
-                val callback = object : ConnectivityManager.NetworkCallback() {
-                    override fun onAvailable(network: Network) {
-                        trySend(StateData.ConnectivityStatus(true))
-                    }
-                    override fun onLost(network: Network) {
-                        trySend(StateData.ConnectivityStatus(false))
-                    }
-                }
-                connectivityManager.registerDefaultNetworkCallback(callback)
-                awaitClose { connectivityManager.unregisterNetworkCallback(callback) }
-            }
+        override fun observe(): Flow<StateData.ConnectivityStatus> = callbackFlow {
+            val monitor = ConnectivityMonitor(
+                onStatusChanged = { trySend(StateData.ConnectivityStatus(it)) },
+                onActiveNetworkChanged = {}
+            )
+            connectivityManager.registerDefaultNetworkCallback(monitor)
+            awaitClose { connectivityManager.unregisterNetworkCallback(monitor) }
         }
     }
 
-    override fun activeNetwork(): StatePlugin<StateData.CurrentActiveNetwork> {
-        return object : StatePlugin<StateData.CurrentActiveNetwork> {
-            override val id: String = "${this@AndroidNetworkPlugin.id}.active"
-            override val requiredPermissions: List<Permission> = emptyList()
-            override val currentState: StateData.CurrentActiveNetwork
-                get() = StateData.CurrentActiveNetwork(getActiveNetworkType())
+    override fun activeNetwork(): StatePlugin<StateData.CurrentActiveNetwork> = object : StatePlugin<StateData.CurrentActiveNetwork> {
+        override val id: String = "${this@AndroidNetworkPlugin.id}.active"
+        override val requiredPermissions: List<Permission> = emptyList()
+        override val currentState: StateData.CurrentActiveNetwork
+            get() = StateData.CurrentActiveNetwork(getActiveNetworkType())
 
-            override fun observe(): Flow<StateData.CurrentActiveNetwork> = callbackFlow {
-                val callback = object : ConnectivityManager.NetworkCallback() {
-                    override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
-                        val type = when {
-                            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> StateData.CurrentActiveNetwork.ActiveNetwork.WIFI
-                            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> StateData.CurrentActiveNetwork.ActiveNetwork.CELLULAR
-                            else -> StateData.CurrentActiveNetwork.ActiveNetwork.NONE
-                        }
-                        trySend(StateData.CurrentActiveNetwork(type))
-                    }
-                    override fun onLost(network: Network) {
-                        trySend(StateData.CurrentActiveNetwork(StateData.CurrentActiveNetwork.ActiveNetwork.NONE))
-                    }
-                }
-                val request = NetworkRequest.Builder()
-                    .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-                    .build()
-                connectivityManager.registerNetworkCallback(request, callback)
-                awaitClose { connectivityManager.unregisterNetworkCallback(callback) }
-            }
+        override fun observe(): Flow<StateData.CurrentActiveNetwork> = callbackFlow {
+            val monitor = ConnectivityMonitor(
+                onStatusChanged = {},
+                onActiveNetworkChanged = { trySend(StateData.CurrentActiveNetwork(it)) }
+            )
+            val request = NetworkRequest.Builder()
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                .build()
+            connectivityManager.registerNetworkCallback(request, monitor)
+            awaitClose { connectivityManager.unregisterNetworkCallback(monitor) }
         }
     }
 
