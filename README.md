@@ -26,7 +26,7 @@ implementation("io.github.shadadman:ksensor-core:2.0.0")
 
 ## Motion Sensors Plugin
 
-Provides access to high-frequency hardware sensors for tracking movement.
+Provides access to hardware sensors for tracking movement.
 
 Dependency:
 ```kotlin
@@ -128,7 +128,7 @@ Data Models (Wrapped in `KSensorResponse`):
 
 - BLE Connections: `BleConnectionStatus(connectedDevices: List<BleDevice>)`
 - BLE Discoveries: `BleDiscoversStatus(discoveredDevices: List<BleDevice>)`
-- BLE Device: `BleDevice(id: String, name: String)`
+- `BleDevice(id: String, name: String)`
 
 ## Lifecycle States Plugin
 
