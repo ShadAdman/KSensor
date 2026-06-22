@@ -16,7 +16,7 @@ internal class BleDiscoversReceiver(
 ) {
     private val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
     private val bluetoothAdapter: BluetoothAdapter? = bluetoothManager.adapter
-    private val bleScanner = bluetoothAdapter?.bluetoothLeScanner
+    private val bleScanner get() = bluetoothAdapter?.bluetoothLeScanner
 
     private val discoveredDevices = mutableMapOf<String, BleDevice>()
 
@@ -39,10 +39,15 @@ internal class BleDiscoversReceiver(
 
     @SuppressLint("MissingPermission")
     fun register() {
-        if (bluetoothAdapter?.isEnabled == true) {
-            bleScanner?.startScan(scanCallback)
+        val scanner = bleScanner
+        if (scanner != null) {
+            if (bluetoothAdapter?.isEnabled == true) {
+                scanner.startScan(scanCallback)
+            } else {
+                onError(Exception("Bluetooth is disabled"))
+            }
         } else {
-            onError(Exception("Bluetooth is disabled"))
+            onError(Exception("Bluetooth LE Scanner not available"))
         }
     }
 

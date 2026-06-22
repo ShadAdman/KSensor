@@ -10,9 +10,14 @@ import com.ksensor.core.StatePlugin
 import com.ksensor.core.context.KSensorContext
 import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.StateData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.shareIn
 
 class AndroidNetworkPlugin : NetworkPlugin {
     override val id: PluginId = PluginId.NETWORK
@@ -22,29 +27,32 @@ class AndroidNetworkPlugin : NetworkPlugin {
         KSensorContext.get().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     }
 
-    override fun connectivity(): StatePlugin<StateData.ConnectivityStatus> = object : StatePlugin<StateData.ConnectivityStatus> {
-        override val id: PluginId = PluginId.NETWORK
-        override val requiredPermissions: List<Permission> = emptyList()
-        override val currentState: KSensorResponse<StateData.ConnectivityStatus>
-            get() = KSensorResponse(StateData.ConnectivityStatus(isConnected()))
+    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
-        override fun observe(): Flow<KSensorResponse<StateData.ConnectivityStatus>> = callbackFlow {
+    private val connectivityFlow by lazy {
+        callbackFlow {
             val monitor = ConnectivityMonitor(
                 onStatusChanged = { trySend(KSensorResponse(StateData.ConnectivityStatus(it))) },
                 onActiveNetworkChanged = {}
             )
             connectivityManager.registerDefaultNetworkCallback(monitor)
             awaitClose { connectivityManager.unregisterNetworkCallback(monitor) }
-        }
+        }.shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
     }
 
-    override fun activeNetwork(): StatePlugin<StateData.CurrentActiveNetwork> = object : StatePlugin<StateData.CurrentActiveNetwork> {
+    private val connectivityPlugin = object : StatePlugin<StateData.ConnectivityStatus> {
         override val id: PluginId = PluginId.NETWORK
         override val requiredPermissions: List<Permission> = emptyList()
-        override val currentState: KSensorResponse<StateData.CurrentActiveNetwork>
-            get() = KSensorResponse(StateData.CurrentActiveNetwork(getActiveNetworkType()))
+        override val currentState: KSensorResponse<StateData.ConnectivityStatus>
+            get() = KSensorResponse(StateData.ConnectivityStatus(isConnected()))
 
-        override fun observe(): Flow<KSensorResponse<StateData.CurrentActiveNetwork>> = callbackFlow {
+        override fun observe(): Flow<KSensorResponse<StateData.ConnectivityStatus>> = connectivityFlow
+    }
+
+    override fun connectivity(): StatePlugin<StateData.ConnectivityStatus> = connectivityPlugin
+
+    private val activeNetworkFlow by lazy {
+        callbackFlow {
             val monitor = ConnectivityMonitor(
                 onStatusChanged = {},
                 onActiveNetworkChanged = { trySend(KSensorResponse(StateData.CurrentActiveNetwork(it))) }
@@ -54,8 +62,19 @@ class AndroidNetworkPlugin : NetworkPlugin {
                 .build()
             connectivityManager.registerNetworkCallback(request, monitor)
             awaitClose { connectivityManager.unregisterNetworkCallback(monitor) }
-        }
+        }.shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
     }
+
+    private val activeNetworkPlugin = object : StatePlugin<StateData.CurrentActiveNetwork> {
+        override val id: PluginId = PluginId.NETWORK
+        override val requiredPermissions: List<Permission> = emptyList()
+        override val currentState: KSensorResponse<StateData.CurrentActiveNetwork>
+            get() = KSensorResponse(StateData.CurrentActiveNetwork(getActiveNetworkType()))
+
+        override fun observe(): Flow<KSensorResponse<StateData.CurrentActiveNetwork>> = activeNetworkFlow
+    }
+
+    override fun activeNetwork(): StatePlugin<StateData.CurrentActiveNetwork> = activeNetworkPlugin
 
     private fun isConnected(): Boolean {
         val network = connectivityManager.activeNetwork ?: return false

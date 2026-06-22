@@ -5,20 +5,32 @@ import com.ksensor.core.PluginId
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.SensorData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.shareIn
+import java.util.concurrent.ConcurrentHashMap
 
 class AndroidInteractionPlugin : InteractionPlugin {
     override val id: PluginId = PluginId.INTERACTION
     override val requiredPermissions: List<Permission> = emptyList()
 
-    override fun touchGestures(config: SensorConfig): Flow<KSensorResponse<SensorData.TouchGestures>> = callbackFlow {
-        TouchGesturesMonitor.registerObserver {
-            trySend(KSensorResponse(it))
+    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private val touchGesturesFlows = ConcurrentHashMap<SensorConfig, Flow<KSensorResponse<SensorData.TouchGestures>>>()
+
+    override fun touchGestures(config: SensorConfig): Flow<KSensorResponse<SensorData.TouchGestures>> =
+        touchGesturesFlows.getOrPut(config) {
+            callbackFlow {
+                TouchGesturesMonitor.registerObserver {
+                    trySend(KSensorResponse(it))
+                }
+                awaitClose { TouchGesturesMonitor.removeObserver() }
+            }.shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
         }
-        awaitClose { TouchGesturesMonitor.removeObserver() }
-    }
 }
 
 actual fun createInteractionPlugin(): InteractionPlugin = AndroidInteractionPlugin()
