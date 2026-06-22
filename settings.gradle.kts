@@ -28,7 +28,6 @@ dependencyResolutionManagement {
     }
 }
 
-include(":ksensor")
 include(":core")
 
 include(":plugins:sensors:motion")
