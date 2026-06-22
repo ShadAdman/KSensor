@@ -32,6 +32,7 @@ kotlin {
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
             implementation(projects.core)
+            implementation(projects.plugins.sensors.positioning)
             implementation(projects.plugins.states.bluetooth)
         }
         androidMain.dependencies {

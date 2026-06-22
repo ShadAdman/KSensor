@@ -10,7 +10,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.ksensor.core.KSensor
+import com.ksensor.core.Permission
+import com.ksensor.core.PermissionStatus
 import com.ksensor.core.PluginId
+import com.ksensor.plugins.sensors.positioning.PositioningPlugin
+import com.ksensor.plugins.sensors.positioning.createPositioningPlugin
 import com.ksensor.plugins.states.bluetooth.BluetoothPlugin
 import com.ksensor.plugins.states.bluetooth.createBluetoothPlugin
 import kotlinx.coroutines.flow.emptyFlow
@@ -19,27 +23,49 @@ import kotlinx.coroutines.flow.emptyFlow
 fun App() {
     MaterialTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
-            BluetoothSample()
+            var permissionGranted by remember {
+                mutableStateOf(
+                    KSensor.permissionHandler.hasPermission(
+                        Permission.BLUETOOTH
+                    )
+                )
+            }
+
+            if (!permissionGranted) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+                ) {
+                    Text("Bluetooth Permission Required")
+                    Button(onClick = { /* Trigger permission request handled by AskPermission */ }) {
+                        Text("Grant Permission")
+                    }
+
+                    KSensor.permissionHandler.AskPermission(Permission.BLUETOOTH) { status ->
+                        if (status == PermissionStatus.GRANTED) {
+                            permissionGranted = true
+                        }
+                    }
+                }
+            } else {
+                BluetoothSample()
+                OrientationSampleUsingEffect()
+                OrientationSampleUsingState()
+            }
         }
     }
 }
 
 @Composable
 fun BluetoothSample() {
-    var isRegistered by remember { mutableStateOf(false) }
-    val bluetoothPlugin = remember { 
-        if (!isRegistered) {
-            val plugin = createBluetoothPlugin()
-            KSensor.register(plugin)
-            isRegistered = true
-            plugin
-        } else {
-            KSensor.get<BluetoothPlugin>(PluginId.BLUETOOTH)
-        }
+    val bluetoothPlugin = remember {
+        KSensor.get<BluetoothPlugin>(PluginId.BLUETOOTH)
+            ?: createBluetoothPlugin().also { KSensor.register(it) }
     }
 
-    val connectionsResponse by (bluetoothPlugin?.connections()?.observe() ?: emptyFlow()).collectAsState(null)
-    val discoveriesResponse by (bluetoothPlugin?.discoveries()?.observe() ?: emptyFlow()).collectAsState(null)
+    val connectionsResponse by (bluetoothPlugin.connections().observe()).collectAsState(null)
+    val discoveriesResponse by (bluetoothPlugin.discoveries().observe()).collectAsState(null)
 
     val connections = connectionsResponse?.data
     val discoveries = discoveriesResponse?.data
@@ -64,4 +90,32 @@ fun BluetoothSample() {
             }
         }
     }
+}
+
+@Composable
+fun OrientationSampleUsingEffect() {
+    val plugin = remember {
+        KSensor.get<PositioningPlugin>(PluginId.POSITIONING)
+            ?: createPositioningPlugin().also { KSensor.register(it) }
+    }
+
+    // Use effect
+    LaunchedEffect(plugin) {
+        plugin.orientation().collect {
+            println("OrientationData in effect: ${it.data}")
+        }
+    }
+}
+
+@Composable
+fun OrientationSampleUsingState() {
+    val plugin = remember {
+        KSensor.get<PositioningPlugin>(PluginId.POSITIONING)
+            ?: createPositioningPlugin().also { KSensor.register(it) }
+    }
+
+    // Use state
+    val orientation by plugin.orientation().collectAsState(null)
+
+    println("OrientationData as state: ${orientation?.data}")
 }
