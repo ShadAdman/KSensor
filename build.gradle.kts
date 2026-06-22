@@ -10,4 +10,5 @@ plugins {
     alias(libs.plugins.kmmbridge) apply false
     alias(libs.plugins.androidKotlinMultiplatformLibrary) apply false
     alias(libs.plugins.androidLint) apply false
+    alias(libs.plugins.vanniktechPublish) apply false
 }
