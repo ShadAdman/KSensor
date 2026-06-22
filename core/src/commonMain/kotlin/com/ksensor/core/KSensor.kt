@@ -7,9 +7,16 @@ object KSensor {
     private val registry = mutableMapOf<PluginId, KSensorPlugin>()
 
     /**
+     * Permission handler for checking and requesting permissions.
+     */
+    val permissionHandler: PermissionHandler by lazy { createPermissionHandler() }
+
+    /**
      * Registers a plugin.
      */
     fun register(plugin: KSensorPlugin) {
+        if (registry.containsKey(plugin.id)) return
+
         registry[plugin.id] = plugin
     }
 
@@ -17,6 +24,8 @@ object KSensor {
      * Unregisters a plugin.
      */
     fun unregister(id: PluginId) {
+        if (registry.containsKey(id).not()) throw Exception("Plugin with id $id not found")
+        
         registry.remove(id)
     }
 

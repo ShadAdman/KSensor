@@ -9,7 +9,7 @@
             tools:node="merge">
             <meta-data
                 android:name="com.ksensor.core.context.KSensorInitializer"
-                android:value="androidx.startup.Initializer" />
+                android:value="androidx.startup" />
         </provider>
     </application>
 </manifest>

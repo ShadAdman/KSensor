@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidKotlinMultiplatformLibrary)
     alias(libs.plugins.androidLint)
+    alias(libs.plugins.composeMultiplatform)
+    alias(libs.plugins.composeCompiler)
 }
 
 kotlin {
@@ -46,6 +48,8 @@ kotlin {
             dependencies {
                 implementation(libs.kotlin.stdlib)
                 implementation(libs.kotlinx.coroutines.core)
+                implementation(compose.runtime)
+                implementation(compose.foundation)
                 // Add KMP dependencies here
             }
         }
@@ -53,6 +57,8 @@ kotlin {
         androidMain {
             dependencies {
                 implementation(libs.androidx.startup)
+                implementation("androidx.core:core-ktx:1.15.0")
+                implementation(libs.accompanist.permissions)
             }
         }
 
