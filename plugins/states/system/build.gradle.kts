@@ -32,7 +32,9 @@ kotlin {
             isStatic = true
         }
         iosTarget.compilations.getByName("main") {
-            val nskeyvalueobserving by cinterops.creating
+            cinterops {
+                create("nskeyvalueobserving")
+            }
         }
     }
 
