@@ -10,7 +10,7 @@ class IosBluetoothPluginTest {
     @Test
     fun testConnections() = runBlocking {
         val plugin = IosBluetoothPlugin()
-        withTimeoutOrNull(2000) {
+        val data = withTimeoutOrNull(2000) {
             plugin.connections().observe().first()
         }
     }
@@ -18,7 +18,7 @@ class IosBluetoothPluginTest {
     @Test
     fun testDiscoveries() = runBlocking {
         val plugin = IosBluetoothPlugin()
-        withTimeoutOrNull(2000) {
+        val data = withTimeoutOrNull(2000) {
             plugin.discoveries().observe().first()
         }
     }

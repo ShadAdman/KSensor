@@ -10,7 +10,7 @@ class IosPositioningPluginTest {
     @Test
     fun testLocation() = runBlocking {
         val plugin = IosPositioningPlugin()
-        withTimeoutOrNull(2000) {
+        val data = withTimeoutOrNull(2000) {
             plugin.location().first()
         }
     }
@@ -18,7 +18,7 @@ class IosPositioningPluginTest {
     @Test
     fun testMagnetometer() = runBlocking {
         val plugin = IosPositioningPlugin()
-        withTimeoutOrNull(2000) {
+        val data = withTimeoutOrNull(2000) {
             plugin.magnetometer().first()
         }
     }
@@ -26,7 +26,7 @@ class IosPositioningPluginTest {
     @Test
     fun testOrientation() = runBlocking {
         val plugin = IosPositioningPlugin()
-        withTimeoutOrNull(2000) {
+        val data = withTimeoutOrNull(2000) {
             plugin.orientation().first()
         }
     }

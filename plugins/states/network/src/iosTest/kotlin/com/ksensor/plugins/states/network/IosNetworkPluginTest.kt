@@ -10,7 +10,7 @@ class IosNetworkPluginTest {
     @Test
     fun testConnectivity() = runBlocking {
         val plugin = IosNetworkPlugin()
-        withTimeoutOrNull(2000) {
+        val data = withTimeoutOrNull(2000) {
             plugin.connectivity().observe().first()
         }
     }
@@ -18,7 +18,7 @@ class IosNetworkPluginTest {
     @Test
     fun testActiveNetwork() = runBlocking {
         val plugin = IosNetworkPlugin()
-        withTimeoutOrNull(2000) {
+        val data = withTimeoutOrNull(2000) {
             plugin.activeNetwork().observe().first()
         }
     }

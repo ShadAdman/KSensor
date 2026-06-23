@@ -10,7 +10,7 @@ class IosInteractionPluginTest {
     @Test
     fun testTouchGestures() = runBlocking {
         val plugin = IosInteractionPlugin()
-        withTimeoutOrNull(2000) {
+        val data = withTimeoutOrNull(2000) {
             plugin.touchGestures().first()
         }
     }

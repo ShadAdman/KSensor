@@ -10,7 +10,7 @@ class IosLifecyclePluginTest {
     @Test
     fun testAppVisibility() = runBlocking {
         val plugin = IosLifecyclePlugin()
-        withTimeoutOrNull(2000) {
+        val data = withTimeoutOrNull(2000) {
             plugin.appVisibility().observe().first()
         }
     }

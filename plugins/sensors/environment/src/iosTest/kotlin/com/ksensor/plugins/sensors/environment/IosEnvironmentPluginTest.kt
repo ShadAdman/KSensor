@@ -8,17 +8,19 @@ import kotlin.test.Test
 class IosEnvironmentPluginTest {
 
     @Test
-    fun testBarometer() = runBlocking {
-        val plugin = IosEnvironmentPlugin()
-        withTimeoutOrNull(2000) {
-            plugin.barometer().first()
+    fun testBarometer() {
+        runBlocking {
+            val plugin = IosEnvironmentPlugin()
+            val data = withTimeoutOrNull(2000) {
+                plugin.barometer().first()
+            }
         }
     }
 
     @Test
     fun testLight() = runBlocking {
         val plugin = IosEnvironmentPlugin()
-        withTimeoutOrNull(2000) {
+        val data = withTimeoutOrNull(2000) {
             plugin.light().first()
         }
     }
@@ -26,7 +28,7 @@ class IosEnvironmentPluginTest {
     @Test
     fun testProximity() = runBlocking {
         val plugin = IosEnvironmentPlugin()
-        withTimeoutOrNull(2000) {
+        val data = withTimeoutOrNull(2000) {
             plugin.proximity().first()
         }
     }

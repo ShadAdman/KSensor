@@ -10,7 +10,7 @@ class IosSystemPluginTest {
     @Test
     fun testBattery() = runBlocking {
         val plugin = IosSystemPlugin()
-        withTimeoutOrNull(2000) {
+        val data = withTimeoutOrNull(2000) {
             plugin.battery().observe().first()
         }
     }
@@ -18,7 +18,7 @@ class IosSystemPluginTest {
     @Test
     fun testVolume() = runBlocking {
         val plugin = IosSystemPlugin()
-        withTimeoutOrNull(2000) {
+        val data = withTimeoutOrNull(2000) {
             plugin.volume().observe().first()
         }
     }
@@ -26,7 +26,7 @@ class IosSystemPluginTest {
     @Test
     fun testLocale() = runBlocking {
         val plugin = IosSystemPlugin()
-        withTimeoutOrNull(2000) {
+        val data = withTimeoutOrNull(2000) {
             plugin.locale().observe().first()
         }
     }
@@ -34,7 +34,7 @@ class IosSystemPluginTest {
     @Test
     fun testScreen() = runBlocking {
         val plugin = IosSystemPlugin()
-        withTimeoutOrNull(2000) {
+        val data = withTimeoutOrNull(2000) {
             plugin.screen().observe().first()
         }
     }
@@ -42,7 +42,7 @@ class IosSystemPluginTest {
     @Test
     fun testLock() = runBlocking {
         val plugin = IosSystemPlugin()
-        withTimeoutOrNull(2000) {
+        val data = withTimeoutOrNull(2000) {
             plugin.lock().observe().first()
         }
     }

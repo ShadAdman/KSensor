@@ -10,7 +10,7 @@ class IosMotionPluginTest {
     @Test
     fun testAccelerometer() = runBlocking {
         val plugin = IosMotionPlugin()
-        withTimeoutOrNull(2000) {
+        val data = withTimeoutOrNull(2000) {
             plugin.accelerometer().first()
         }
     }
@@ -18,7 +18,7 @@ class IosMotionPluginTest {
     @Test
     fun testGyroscope() = runBlocking {
         val plugin = IosMotionPlugin()
-        withTimeoutOrNull(2000) {
+        val data = withTimeoutOrNull(2000) {
             plugin.gyroscope().first()
         }
     }
@@ -26,7 +26,7 @@ class IosMotionPluginTest {
     @Test
     fun testStepCounter() = runBlocking {
         val plugin = IosMotionPlugin()
-        withTimeoutOrNull(2000) {
+        val data = withTimeoutOrNull(2000) {
             plugin.stepCounter().first()
         }
     }
