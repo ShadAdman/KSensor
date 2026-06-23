@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.shareIn
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.getValue
 
 class AndroidEnvironmentPlugin : EnvironmentPlugin {
     override val id: PluginId = PluginId.ENVIRONMENT

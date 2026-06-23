@@ -3,8 +3,8 @@ package com.ksensor.plugins.states.system
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.text.TextUtils
 import android.view.View
-import androidx.core.text.layoutDirection
 import com.ksensor.core.model.StateData
 
 internal class LocaleReceiver(
@@ -20,7 +20,7 @@ internal class LocaleReceiver(
 
     fun getCurrentLocale(): StateData.LocaleStatus {
         val locale = context.resources.configuration.locales[0]
-        val isRtl = locale.layoutDirection == View.LAYOUT_DIRECTION_RTL
+        val isRtl = TextUtils.getLayoutDirectionFromLocale(locale) == View.LAYOUT_DIRECTION_RTL
 
         return StateData.LocaleStatus(
             languageCode = locale.language,

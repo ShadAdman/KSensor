@@ -9,7 +9,7 @@ plugins {
 kotlin {
     android {
         namespace = "com.ksensor.plugins.sensors.positioning"
-        compileSdk = 37
+        compileSdk = 36
         minSdk = 24
 
         withHostTestBuilder {

@@ -44,7 +44,7 @@ kotlin {
 
 extensions.configure<com.android.build.api.dsl.ApplicationExtension> {
     namespace = "com.ksensor.sample"
-    compileSdk = 37
+    compileSdk = 36
     defaultConfig {
         applicationId = "com.ksensor.sample"
         minSdk = 24

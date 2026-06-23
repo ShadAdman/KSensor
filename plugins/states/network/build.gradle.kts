@@ -9,7 +9,7 @@ plugins {
 kotlin {
     android {
         namespace = "com.ksensor.plugins.states.network"
-        compileSdk = 37
+        compileSdk = 36
         minSdk = 24
 
         withHostTestBuilder {

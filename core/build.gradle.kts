@@ -13,7 +13,7 @@ kotlin {
 
     android {
         namespace = "com.ksensor.core"
-        compileSdk = 37
+        compileSdk = 36
         minSdk = 24
 
         withHostTestBuilder {
