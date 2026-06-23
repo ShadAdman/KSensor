@@ -22,21 +22,17 @@ kotlin {
 
     val xcfName = "systemStateKit"
 
-    iosX64 {
-        binaries.framework {
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
             baseName = xcfName
+            isStatic = true
         }
-    }
-
-    iosArm64 {
-        binaries.framework {
-            baseName = xcfName
-        }
-    }
-
-    iosSimulatorArm64 {
-        binaries.framework {
-            baseName = xcfName
+        iosTarget.compilations.getByName("main") {
+            val nskeyvalueobserving by cinterops.creating
         }
     }
 
