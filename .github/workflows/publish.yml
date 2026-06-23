@@ -22,10 +22,8 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
-      - name: Compile iOS module
-        run: ./gradlew :plugins:states:system:compileIosMainKotlinMetadata \
-            --stacktrace \
-            --info
+      - name: Build System State iOS targets
+        run: ./gradlew :plugins:states:system:assemble --stacktrace --info
 
       - name: Publish with Gradle
         env:
