@@ -1,7 +1,13 @@
+import com.vanniktech.maven.publish.KotlinMultiplatform
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidKotlinMultiplatformLibrary)
     alias(libs.plugins.vanniktechPublish)
+}
+
+mavenPublishing {
+    configure(KotlinMultiplatform())
 }
 
 kotlin {
