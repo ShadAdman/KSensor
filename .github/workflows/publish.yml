@@ -22,9 +22,6 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
-      - name: Build System State iOS targets
-        run: ./gradlew :plugins:states:system:assemble --stacktrace --info
-
       - name: Publish with Gradle
         env:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_USERNAME }}
