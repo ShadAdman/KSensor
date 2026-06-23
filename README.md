@@ -3,12 +3,12 @@
 [![License](https://img.shields.io/badge/License-0BSD-informational.svg)](https://opensource.org/licenses/0BSD)
 
 <p align="center">
-  <img src="ksensor.png" alt="ksensor Poster" width="600" style="border-radius: 50%;"/>
+  <img src="ksensor.png" alt="ksensor Poster" width="500" style="border-radius: 50%;"/>
 </p>
 
 # KSensor
 
-KSensor is a plugin-based Kotlin Multiplatform library for observing device sensors and system states. Each sensor or state is grouped into its own plugin, allowing you to include only the features you need. This prevents pulling in unnecessary code and permissions.
+KSensor is a Kotlin Multiplatform library for observing device sensors and system states. Each sensor or state is grouped into its own plugin, allowing you to include only the features you need. This prevents pulling in unnecessary code and permissions.
 
 All data emitted by plugins is wrapped in a `KSensorResponse<T>` which includes:
 - `data`: The actual sensor or state data.
@@ -29,6 +29,8 @@ interface PermissionHandler {
 
 You must ensure that the necessary permissions are granted before starting sensor observations. Each plugin section below lists its required permissions.
 
+For Android, you must add the permissions to the `Manifest` file manually.
+
 ---
 
 ## Core Module
@@ -36,6 +38,7 @@ You must ensure that the necessary permissions are granted before starting senso
 The foundation of the library. It is required for all plugins.
 
 Dependency:
+
 ```kotlin
 implementation("io.github.shadadman:ksensor-core:2.0.0")
 ```
