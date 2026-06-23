@@ -3,6 +3,7 @@ package com.ksensor.plugins.sensors.motion
 import com.ksensor.core.Permission
 import com.ksensor.core.PluginId
 import com.ksensor.core.SensorConfig
+import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.SensorData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -21,17 +22,17 @@ class FakeMotionPlugin : MotionPlugin {
 
     val activeObservers = mutableSetOf<String>()
 
-    override fun accelerometer(config: SensorConfig): Flow<SensorData.Accelerometer> = 
-        MutableSharedFlow<SensorData.Accelerometer>().asTrackedFlow("accelerometer")
+    override fun accelerometer(config: SensorConfig): Flow<KSensorResponse<SensorData.Accelerometer>> =
+        MutableSharedFlow<KSensorResponse<SensorData.Accelerometer>>().asTrackedFlow("accelerometer")
 
-    override fun gyroscope(config: SensorConfig): Flow<SensorData.Gyroscope> = 
-        MutableSharedFlow<SensorData.Gyroscope>().asTrackedFlow("gyroscope")
+    override fun gyroscope(config: SensorConfig): Flow<KSensorResponse<SensorData.Gyroscope>> =
+        MutableSharedFlow<KSensorResponse<SensorData.Gyroscope>>().asTrackedFlow("gyroscope")
 
-    override fun stepCounter(config: SensorConfig): Flow<SensorData.StepCounter> = 
-        MutableSharedFlow<SensorData.StepCounter>().asTrackedFlow("stepCounter")
+    override fun stepCounter(config: SensorConfig): Flow<KSensorResponse<SensorData.StepCounter>> =
+        MutableSharedFlow<KSensorResponse<SensorData.StepCounter>>().asTrackedFlow("stepCounter")
 
-    override fun stepDetector(config: SensorConfig): Flow<SensorData.StepDetector> = 
-        MutableSharedFlow<SensorData.StepDetector>().asTrackedFlow("stepDetector")
+    override fun stepDetector(config: SensorConfig): Flow<KSensorResponse<SensorData.StepDetector>> =
+        MutableSharedFlow<KSensorResponse<SensorData.StepDetector>>().asTrackedFlow("stepDetector")
 
     private fun <T> Flow<T>.asTrackedFlow(name: String): Flow<T> {
         return this.onStart { activeObservers.add(name) }
