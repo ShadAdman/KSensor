@@ -148,6 +148,7 @@ Data Models (Wrapped in `KSensorResponse`):
 - Locale: `LocaleStatus(languageCode: String, countryCode: String, fullLocaleString: String, displayName: String, isRTL: Boolean)`
 - Screen: `ScreenStatus(isScreenOn: Boolean)`
 - Lock: `LockStatus(isDeviceLocked: Boolean)`
+- Power Save: `PowerSaveStatus(isPowerSaveMode: Boolean)`
 
 ## Bluetooth States Plugin
 
