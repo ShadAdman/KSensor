@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/License-0BSD-informational.svg)](https://opensource.org/licenses/0BSD)
 
 <p align="center">
-  <img src="ksensor.png" alt="ksensor Poster" width="900" style="border-radius: 50%;"/>
+  <img src="ksensor.png" alt="ksensor Poster" width="1000" style="border-radius: 50%;"/>
 </p>
 
 # KSensor
@@ -187,18 +187,38 @@ Data Models (Wrapped in `KSensorResponse`):
 1. Register your plugin implementation.
 2. Use the `KSensor` registry to retrieve the plugin and observe its data using Kotlin Flow.
 
-Example:
+Example to observe using `State`:
 ```kotlin
-// Register a plugin
-KSensor.register(createMotionPlugin())
+@Composable
+fun OrientationSampleUsingState() {
+    // Register a plugin
+    val plugin = remember {
+        KSensor.get<PositioningPlugin>(PluginId.POSITIONING)
+            ?: createPositioningPlugin().also { KSensor.register(it) }
+    }
 
-// Retrieve and observe
-val motion = KSensor.get<MotionPlugin>(PluginId.MOTION)
-motion?.accelerometer()?.collect { response ->
-    // response.data contains the Accelerometer values
-    // response.platform indicates if it is Android or iOS
-    // response.timestamp indicates when the data was recorded
-    println("Platform: ${response.platform}, Data: ${response.data}")
+    // Use state
+    val orientation by plugin.orientation().collectAsState(null)
+
+    println("OrientationData as state: ${orientation?.data}")
+}
+```
+Example to observe using `Effect`:
+```kotlin
+@Composable
+fun OrientationSampleUsingEffect() {
+    // Register a plugin
+    val plugin = remember {
+        KSensor.get<PositioningPlugin>(PluginId.POSITIONING)
+            ?: createPositioningPlugin().also { KSensor.register(it) }
+    }
+
+    // Use effect
+    LaunchedEffect(plugin) {
+        plugin.orientation().collect {
+            println("OrientationData in effect: ${it.data}")
+        }
+    }
 }
 ```
 
