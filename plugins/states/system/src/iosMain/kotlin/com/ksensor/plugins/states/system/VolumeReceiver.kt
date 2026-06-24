@@ -11,7 +11,7 @@ import platform.Foundation.NSKeyValueObservingOptionNew
 import platform.Foundation.addObserver
 import platform.Foundation.removeObserver
 import platform.darwin.NSObject
-import platform.Foundation.NSKeyValueObservingProtocol
+//import platform.Foundation.NSKeyValueObservingProtocol
 
 @OptIn(ExperimentalForeignApi::class)
 internal class VolumeReceiver(private val onVolumeChange: (Int) -> Unit) {
