@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/License-0BSD-informational.svg)](https://opensource.org/licenses/0BSD)
 
 <p align="center">
-  <img src="ksensor.png" alt="ksensor Poster" width="500" style="border-radius: 50%;"/>
+  <img src="ksensor.png" alt="ksensor Poster" width="900" style="border-radius: 50%;"/>
 </p>
 
 # KSensor
