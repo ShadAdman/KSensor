@@ -10,6 +10,7 @@ interface EnvironmentPlugin : KSensorPlugin {
     fun barometer(config: SensorConfig = SensorConfig.Default): Flow<KSensorResponse<SensorData.Barometer>>
     fun light(config: SensorConfig = SensorConfig.Default): Flow<KSensorResponse<SensorData.LightIlluminance>>
     fun proximity(config: SensorConfig = SensorConfig.Default): Flow<KSensorResponse<SensorData.Proximity>>
+    fun noise(config: SensorConfig = SensorConfig.Default): Flow<KSensorResponse<SensorData.Noise>>
 }
 
 expect fun createEnvironmentPlugin(): EnvironmentPlugin

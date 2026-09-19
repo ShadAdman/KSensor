@@ -67,6 +67,12 @@ sealed class SensorData {
         val courseOverGround: Double
     ) : SensorData()
 
+    data class Noise(
+        val dB: Float,
+        val isLoud: Boolean? = null,
+        val timestamp: Long? = null
+    ) : SensorData()
+
     enum class HeartRateSource {
         HARDWARE_SENSOR,
         CAMERA_PPG,
