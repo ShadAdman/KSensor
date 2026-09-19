@@ -89,6 +89,7 @@ internal class AndroidPermissionHandler : PermissionHandler {
                 }
             }
             Permission.CAMERA -> listOf(Manifest.permission.CAMERA)
+            Permission.RECORD_AUDIO -> listOf(Manifest.permission.RECORD_AUDIO)
         }
     }
 }

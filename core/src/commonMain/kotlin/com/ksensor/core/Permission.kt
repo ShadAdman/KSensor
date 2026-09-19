@@ -10,7 +10,8 @@ enum class Permission {
     BLUETOOTH,
     ACTIVITY_RECOGNITION,
     BODY_SENSORS,
-    CAMERA
+    CAMERA,
+    RECORD_AUDIO
 }
 
 enum class PermissionStatus {
