@@ -33,6 +33,10 @@ internal class IosPermissionHandler : PermissionHandler {
                 val status = AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo)
                 status == AVAuthorizationStatusAuthorized
             }
+            Permission.RECORD_AUDIO -> {
+                val status = AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeAudio)
+                status == AVAuthorizationStatusAuthorized
+            }
             Permission.BODY_SENSORS -> {
                 if (HKHealthStore.isHealthDataAvailable()) {
                     val store = HKHealthStore()
@@ -72,6 +76,11 @@ internal class IosPermissionHandler : PermissionHandler {
             }
             Permission.CAMERA -> {
                 AVCaptureDevice.requestAccessForMediaType(AVMediaTypeVideo) { granted ->
+                    continuation.resume(granted)
+                }
+            }
+            Permission.RECORD_AUDIO -> {
+                AVCaptureDevice.requestAccessForMediaType(AVMediaTypeAudio) { granted ->
                     continuation.resume(granted)
                 }
             }
@@ -134,6 +143,20 @@ internal class IosPermissionHandler : PermissionHandler {
                     AVAuthorizationStatusAuthorized -> onStatus(PermissionStatus.GRANTED)
                     AVAuthorizationStatusNotDetermined -> {
                         AVCaptureDevice.requestAccessForMediaType(AVMediaTypeVideo) { granted ->
+                            if (granted) onStatus(PermissionStatus.GRANTED) else onStatus(PermissionStatus.DENIED)
+                        }
+                    }
+                    AVAuthorizationStatusDenied,
+                    AVAuthorizationStatusRestricted -> onStatus(PermissionStatus.DENIED)
+                    else -> onStatus(PermissionStatus.UNKNOWN)
+                }
+            }
+            Permission.RECORD_AUDIO -> {
+                val status = AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeAudio)
+                when (status) {
+                    AVAuthorizationStatusAuthorized -> onStatus(PermissionStatus.GRANTED)
+                    AVAuthorizationStatusNotDetermined -> {
+                        AVCaptureDevice.requestAccessForMediaType(AVMediaTypeAudio) { granted ->
                             if (granted) onStatus(PermissionStatus.GRANTED) else onStatus(PermissionStatus.DENIED)
                         }
                     }

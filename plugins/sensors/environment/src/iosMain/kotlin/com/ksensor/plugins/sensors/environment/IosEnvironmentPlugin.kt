@@ -17,10 +17,23 @@ import platform.Foundation.NSTimer
 import platform.UIKit.UIDevice
 import platform.UIKit.UIDeviceProximityStateDidChangeNotification
 import platform.UIKit.UIScreen
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.delay
+import platform.AVFAudio.AVAudioRecorder
+import platform.AVFAudio.AVAudioSession
+import platform.AVFAudio.AVAudioSessionCategoryRecord
+import platform.AVFAudio.AVAudioSessionModeMeasurement
+import platform.AVFAudio.setActive
+import platform.Foundation.NSURL
+import platform.Foundation.NSTemporaryDirectory
+import platform.Foundation.NSUUID
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlin.math.log10
+import kotlin.time.Duration.Companion.milliseconds
 
 class IosEnvironmentPlugin : EnvironmentPlugin {
     override val id: PluginId = PluginId.ENVIRONMENT
-    override val requiredPermissions: List<Permission> = emptyList()
+    override val requiredPermissions: List<Permission> = listOf(Permission.RECORD_AUDIO)
 
     private val altimeter = if (CMAltimeter.isRelativeAltitudeAvailable()) CMAltimeter() else null
 
@@ -68,6 +81,59 @@ class IosEnvironmentPlugin : EnvironmentPlugin {
         awaitClose {
             NSNotificationCenter.defaultCenter.removeObserver(observer)
             device.proximityMonitoringEnabled = false
+        }
+    }
+
+    @OptIn(ExperimentalForeignApi::class)
+    override fun noise(config: SensorConfig): Flow<KSensorResponse<SensorData.Noise>> = flow {
+        var recorder: AVAudioRecorder? = null
+        try {
+            val session = AVAudioSession.sharedInstance()
+            session.setCategory(AVAudioSessionCategoryRecord, null)
+            session.setMode(AVAudioSessionModeMeasurement, null)
+            session.setActive(true, null)
+
+            val url = NSURL.fileURLWithPath(NSTemporaryDirectory() + NSUUID().UUIDString() + ".m4a")
+            
+            val settings = mapOf<Any?, Any>(
+                platform.AVFAudio.AVFormatIDKey to platform.CoreAudioTypes.kAudioFormatMPEG4AAC,
+                platform.AVFAudio.AVSampleRateKey to 44100.0,
+                platform.AVFAudio.AVNumberOfChannelsKey to 1
+            )
+            
+            recorder = AVAudioRecorder(url, settings, null)
+            recorder.meteringEnabled = true
+            recorder.prepareToRecord()
+            recorder.record()
+
+            while (true) {
+                recorder.updateMeters()
+                
+                val peakPower = recorder.peakPowerForChannel(0u)
+                val db = (peakPower + 100).coerceAtLeast(0f)
+                
+                emit(
+                    KSensorResponse(
+                        data = SensorData.Noise(
+                            dB = db,
+                            isLoud = db > 80f,
+                            timestamp = null
+                        )
+                    )
+                )
+                
+                delay(config.intervalMs.milliseconds)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            recorder?.stop()
+            recorder?.deleteRecording()
+            try {
+                AVAudioSession.sharedInstance().setActive(false, null)
+            } catch (e: Exception) {
+                // Ignore
+            }
         }
     }
 }

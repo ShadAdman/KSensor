@@ -6,6 +6,7 @@ package com.ksensor.core.model
 enum class PluginId {
     MOTION,
     ENVIRONMENT,
+    NOISE,
     POSITIONING,
     INTERACTION,
     NETWORK,
