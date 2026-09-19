@@ -74,6 +74,7 @@ Monitors ambient conditions.
 - **Barometer**: Atmospheric pressure (hPa).
 - **Light**: Ambient illuminance (lux).
 - **Proximity**: Object proximity detection.
+- **Noise**: Ambient sound levels (dB). Includes an `isLoud` flag based on a configurable `loudThresholdDb`. Requires `RECORD_AUDIO` permission.
 
 ### Positioning Sensors (`POSITIONING`)
 Location and spatial orientation.

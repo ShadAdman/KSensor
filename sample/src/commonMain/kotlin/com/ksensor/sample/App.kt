@@ -72,7 +72,7 @@ fun App() {
 //                MotionSampleUsingState()
 //                LocationSample()
 //                StorageSample()
-                ResourcesSample()
+//                ResourcesSample()
 //                HeadingSample()
 //                BrightnessSample()
 //                HealthSample()

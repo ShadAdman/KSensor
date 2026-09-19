@@ -131,7 +131,7 @@ Data Models (Wrapped in `KSensorResponse`):
 - Barometer: `Barometer(pressure: Float)`
 - Light: `LightIlluminance(illuminance: Float)`
 - Proximity: `Proximity(distanceInCM: Float, isNear: Boolean)`
-- Noise: `Noise(dB: Float, isLoud: Boolean, timestamp: Long)`
+- Noise: `Noise(dB: Float, isLoud: Boolean, timestamp: Long?)`
 
 ## Positioning Sensors Plugin
 

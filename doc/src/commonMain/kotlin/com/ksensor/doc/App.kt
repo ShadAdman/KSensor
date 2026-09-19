@@ -70,6 +70,7 @@ fun Sidebar(onPageSelected: (DocPage) -> Unit) {
                 SidebarItem("Barometer") { onPageSelected(DocPage.Plugin("Sensors", "Barometer", "Measures the ambient air pressure in hPa (millibars).", "Pressure (Float)", "KSensor.get<EnvironmentPlugin>(PluginId.ENVIRONMENT)?.barometer()?.collect { response -> \n    val pressure = response.data.pressure\n}")) }
                 SidebarItem("Light") { onPageSelected(DocPage.Plugin("Sensors", "Light", "Measures the ambient light level (illuminance) in lx.", "Illuminance (Float)", "KSensor.get<EnvironmentPlugin>(PluginId.ENVIRONMENT)?.light()?.collect { response -> \n    val lux = response.data.illuminance\n}")) }
                 SidebarItem("Proximity") { onPageSelected(DocPage.Plugin("Sensors", "Proximity", "Measures the proximity of an object in cm relative to the view screen of a device.", "Distance (Float)", "KSensor.get<EnvironmentPlugin>(PluginId.ENVIRONMENT)?.proximity()?.collect { response -> \n    val distance = response.data.distance\n}")) }
+                SidebarItem("Noise") { onPageSelected(DocPage.Plugin("Sensors", "Noise", "Measures ambient sound levels in decibels (dB) and flags if the environment is loud based on a configurable threshold.", "dB (Float), isLoud (Boolean)", "KSensor.get<EnvironmentPlugin>(PluginId.ENVIRONMENT)?.noise()?.collect { response -> \n    val db = response.data.dB\n    val isLoud = response.data.isLoud\n}", "android.permission.RECORD_AUDIO", "NSMicrophoneUsageDescription")) }
             }
             SidebarSubSection("Motion") {
                 SidebarItem("Accelerometer") { onPageSelected(DocPage.Plugin("Sensors", "Accelerometer", "Measures the acceleration force in m/s² that is applied to a device on all three physical axes (x, y, and z).", "X, Y, Z (Float)", "KSensor.get<MotionPlugin>(PluginId.MOTION)?.accelerometer()?.collect { response -> \n    val x = response.data.values.x\n}")) }
@@ -193,7 +194,7 @@ fun IntroPage() {
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                "// 1. Enable start on boot for the library\nKSensor.startOnBoot = true\n\n// 2. Register a plugin to start on boot\nKSensor.register(plugin, startOnBoot = true)\n\n// 3. Unregister a plugin\nKSensor.unregister(PluginId.SYSTEM)\n\n// 4. Trigger startup (Call this in Android Application or iOS AppDelegate)\nKSensor.start()",
+                "// 1. Enable start on boot for the library\nKSensor.startOnBoot = true\n\n// 2. Register a plugin to start on boot\nKSensor.register(plugin, startOnBoot = true)\n\n// 3. Unregister a plugin\nKSensor.unregister(PluginId.SYSTEM)\n\n// 4. Trigger startup (Call this only in Android Application.class or iOS AppDelegate to trigger start on boot.)\nKSensor.start()",
                 color = Color(0xFFA9B7C6),
                 modifier = Modifier.padding(16.dp),
                 fontFamily = FontFamily.Monospace,
