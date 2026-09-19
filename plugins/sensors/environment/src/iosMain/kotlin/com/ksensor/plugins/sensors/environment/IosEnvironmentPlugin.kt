@@ -85,7 +85,7 @@ class IosEnvironmentPlugin : EnvironmentPlugin {
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    override fun noise(config: SensorConfig): Flow<KSensorResponse<SensorData.Noise>> = flow {
+    override fun noise(config: SensorConfig, loudThresholdDb: Float): Flow<KSensorResponse<SensorData.Noise>> = flow {
         var recorder: AVAudioRecorder? = null
         try {
             val session = AVAudioSession.sharedInstance()
@@ -116,7 +116,7 @@ class IosEnvironmentPlugin : EnvironmentPlugin {
                     KSensorResponse(
                         data = SensorData.Noise(
                             dB = db,
-                            isLoud = db > 80f,
+                            isLoud = db > loudThresholdDb,
                             timestamp = null
                         )
                     )

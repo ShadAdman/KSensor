@@ -32,7 +32,7 @@ class FakeEnvironmentPlugin : EnvironmentPlugin {
     override fun proximity(config: SensorConfig): Flow<KSensorResponse<SensorData.Proximity>> =
         MutableSharedFlow<KSensorResponse<SensorData.Proximity>>().asTrackedFlow("proximity")
 
-    override fun noise(config: SensorConfig): Flow<KSensorResponse<SensorData.Noise>> =
+    override fun noise(config: SensorConfig, loudThresholdDb: Float): Flow<KSensorResponse<SensorData.Noise>> =
         MutableSharedFlow<KSensorResponse<SensorData.Noise>>().asTrackedFlow("noise")
 
     private fun <T> Flow<T>.asTrackedFlow(name: String): Flow<T> {

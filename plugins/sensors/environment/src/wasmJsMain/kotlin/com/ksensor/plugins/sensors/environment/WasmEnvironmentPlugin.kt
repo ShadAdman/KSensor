@@ -19,7 +19,7 @@ class WasmEnvironmentPlugin : EnvironmentPlugin {
     override fun barometer(config: SensorConfig): Flow<KSensorResponse<SensorData.Barometer>> = emptyFlow()
     override fun light(config: SensorConfig): Flow<KSensorResponse<SensorData.LightIlluminance>> = emptyFlow()
     override fun proximity(config: SensorConfig): Flow<KSensorResponse<SensorData.Proximity>> = emptyFlow()
-    override fun noise(config: SensorConfig): Flow<KSensorResponse<SensorData.Noise>> = emptyFlow()
+    override fun noise(config: SensorConfig, loudThresholdDb: Float): Flow<KSensorResponse<SensorData.Noise>> = emptyFlow()
 }
 
 actual fun createEnvironmentPlugin(): EnvironmentPlugin = WasmEnvironmentPlugin()

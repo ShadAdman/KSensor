@@ -22,7 +22,7 @@ import kotlinx.coroutines.flow.shareIn
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.getValue
 
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.delay
 import kotlin.math.log10
 import android.media.MediaRecorder
@@ -102,55 +102,69 @@ class AndroidEnvironmentPlugin : EnvironmentPlugin {
             }.shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
         }
 
-    override fun noise(config: SensorConfig): Flow<KSensorResponse<SensorData.Noise>> = flow {
-        var recorder: MediaRecorder? = null
-        try {
-            @Suppress("DEPRECATION")
-            recorder = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-                MediaRecorder(com.ksensor.core.context.KSensorContext.get())
-            } else {
-                MediaRecorder()
-            }
-            
-            recorder.setAudioSource(MediaRecorder.AudioSource.MIC)
-            recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
-            recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
-            recorder.setOutputFile("/dev/null")
-            
-            recorder.prepare()
-            recorder.start()
-            
-            while (true) {
-                val amplitude = recorder.maxAmplitude
-                val db = if (amplitude > 0) {
-                    20 * log10(amplitude.toDouble()).toFloat()
-                } else {
-                    0f
-                }
-                
-                emit(
-                    KSensorResponse(
-                        data = SensorData.Noise(
-                            dB = db,
-                            isLoud = db > 80f,
-                            timestamp = System.currentTimeMillis()
+    private val noiseFlows = ConcurrentHashMap<Pair<SensorConfig, Float>, Flow<KSensorResponse<SensorData.Noise>>>()
+
+    override fun noise(config: SensorConfig, loudThresholdDb: Float): Flow<KSensorResponse<SensorData.Noise>> =
+        noiseFlows.getOrPut(Pair(config, loudThresholdDb)) {
+            callbackFlow {
+                var recorder: MediaRecorder? = null
+                var isRecording = false
+                try {
+                    @Suppress("DEPRECATION")
+                    recorder = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                        MediaRecorder(KSensorContext.get())
+                    } else {
+                        MediaRecorder()
+                    }
+
+                    recorder.setAudioSource(MediaRecorder.AudioSource.MIC)
+                    recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
+                    recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
+                    val tempFile = java.io.File(KSensorContext.get().cacheDir, "noise_temp.3gp")
+                    recorder.setOutputFile(tempFile.absolutePath)
+
+                    recorder.prepare()
+                    recorder.start()
+                    isRecording = true
+
+                    while (isActive && isRecording) {
+                        val amplitude = recorder.maxAmplitude
+                        val db = if (amplitude > 0) {
+                            20 * log10(amplitude.toDouble()).toFloat()
+                        } else {
+                            0f
+                        }
+
+                        trySend(
+                            KSensorResponse(
+                                data = SensorData.Noise(
+                                    dB = db,
+                                    isLoud = db > loudThresholdDb,
+                                    timestamp = System.currentTimeMillis()
+                                )
+                            )
                         )
-                    )
-                )
-                
-                delay(config.intervalMs.milliseconds)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        } finally {
-            try {
-                recorder?.stop()
-            } catch (e: Exception) {
-                // Ignore exception on stop
-            }
-            recorder?.release()
+
+                        delay(config.intervalMs.milliseconds)
+                    }
+                } catch (e: Exception) {
+                    // Start might fail if microphone is not available or busy
+                    e.printStackTrace()
+                } finally {
+                    try {
+                        if (isRecording) {
+                            recorder?.stop()
+                        }
+                    } catch (e: Exception) {
+                        // Ignore exception on stop
+                    }
+                    recorder?.release()
+                }
+                awaitClose {
+                    isRecording = false
+                }
+            }.shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
         }
-    }
 }
 
 actual fun createEnvironmentPlugin(): EnvironmentPlugin = AndroidEnvironmentPlugin()
