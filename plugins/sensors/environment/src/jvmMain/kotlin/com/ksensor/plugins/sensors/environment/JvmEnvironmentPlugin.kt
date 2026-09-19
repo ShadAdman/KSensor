@@ -14,11 +14,12 @@ import kotlinx.coroutines.flow.emptyFlow
  */
 class JvmEnvironmentPlugin : EnvironmentPlugin {
     override val id: PluginId = PluginId.ENVIRONMENT
-    override val requiredPermissions: List<Permission> = emptyList()
+    override val requiredPermissions: List<Permission> = listOf(Permission.RECORD_AUDIO)
 
     override fun barometer(config: SensorConfig): Flow<KSensorResponse<SensorData.Barometer>> = emptyFlow()
     override fun light(config: SensorConfig): Flow<KSensorResponse<SensorData.LightIlluminance>> = emptyFlow()
     override fun proximity(config: SensorConfig): Flow<KSensorResponse<SensorData.Proximity>> = emptyFlow()
+    override fun noise(config: SensorConfig): Flow<KSensorResponse<SensorData.Noise>> = emptyFlow()
 }
 
 actual fun createEnvironmentPlugin(): EnvironmentPlugin = JvmEnvironmentPlugin()

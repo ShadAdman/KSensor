@@ -108,20 +108,30 @@ Data Models (Wrapped in `KSensorResponse`):
 
 ## Environment Sensors Plugin
 
-Provides data from sensors that monitor the ambient environment.
+Provides data from sensors that monitor the ambient environment, such as pressure, light, proximity, and ambient noise.
 
 Dependency:
 ```kotlin
 implementation("io.github.shadadman:ksensor-sensors-environment:version")
 ```
 
-Required Permissions: None
+Required Permissions:
+- Android/iOS: `RECORD_AUDIO` (Only required if using the `NoisePlugin`)
+
+### Android Configuration
+Add the following to your `AndroidManifest.xml` if you are using `NoisePlugin`:
+- `android.permission.RECORD_AUDIO`
+
+### iOS Configuration
+Add the following key to your `Info.plist` if you are using `NoisePlugin`:
+- `NSMicrophoneUsageDescription`: Required for ambient noise measurement.
 
 Data Models (Wrapped in `KSensorResponse`):
 
 - Barometer: `Barometer(pressure: Float)`
 - Light: `LightIlluminance(illuminance: Float)`
 - Proximity: `Proximity(distanceInCM: Float, isNear: Boolean)`
+- Noise: `Noise(dB: Float, isLoud: Boolean, timestamp: Long)`
 
 ## Positioning Sensors Plugin
 

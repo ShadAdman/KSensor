@@ -32,6 +32,9 @@ class FakeEnvironmentPlugin : EnvironmentPlugin {
     override fun proximity(config: SensorConfig): Flow<KSensorResponse<SensorData.Proximity>> =
         MutableSharedFlow<KSensorResponse<SensorData.Proximity>>().asTrackedFlow("proximity")
 
+    override fun noise(config: SensorConfig): Flow<KSensorResponse<SensorData.Noise>> =
+        MutableSharedFlow<KSensorResponse<SensorData.Noise>>().asTrackedFlow("noise")
+
     private fun <T> Flow<T>.asTrackedFlow(name: String): Flow<T> {
         return this.onStart { activeObservers.add(name) }
             .onCompletion { activeObservers.remove(name) }
@@ -68,5 +71,15 @@ class EnvironmentPluginTest {
         assertTrue(fake.activeObservers.contains("proximity"))
         job.cancelAndJoin()
         assertFalse(fake.activeObservers.contains("proximity"))
+    }
+
+    @Test
+    fun testNoise() = runTest {
+        val fake = FakeEnvironmentPlugin()
+        val job = launch { fake.noise().collect {} }
+        runCurrent()
+        assertTrue(fake.activeObservers.contains("noise"))
+        job.cancelAndJoin()
+        assertFalse(fake.activeObservers.contains("noise"))
     }
 }

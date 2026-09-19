@@ -26,6 +26,9 @@ import com.ksensor.plugins.states.system.SystemPlugin
 import com.ksensor.plugins.states.system.createSystemPlugin
 import kotlin.time.Duration.Companion.seconds
 
+import com.ksensor.plugins.sensors.environment.EnvironmentPlugin
+import com.ksensor.plugins.sensors.environment.createEnvironmentPlugin
+
 @Composable
 fun App() {
     MaterialTheme {
@@ -35,7 +38,8 @@ fun App() {
                 Permission.ACTIVITY_RECOGNITION,
                 Permission.LOCATION,
                 Permission.BODY_SENSORS,
-                Permission.CAMERA
+                Permission.CAMERA,
+                Permission.RECORD_AUDIO
             )
             var grantedPermissions by remember {
                 mutableStateOf(permissions.filter { KSensor.permissionHandler.hasPermission(it) }.toSet())
@@ -72,7 +76,31 @@ fun App() {
 //                HeadingSample()
 //                BrightnessSample()
 //                HealthSample()
+                NoiseSample()
             }
+        }
+    }
+}
+
+@Composable
+fun NoiseSample() {
+    val plugin = remember {
+        KSensor.get<EnvironmentPlugin>(PluginId.ENVIRONMENT)
+            ?: createEnvironmentPlugin().also { KSensor.register(it) }
+    }
+
+    val noiseResponse by plugin.noise().collectAsState(null)
+    val noise = noiseResponse?.data
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text("Noise Plugin Sample", style = MaterialTheme.typography.h5)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (noise != null) {
+            Text("Noise Level: ${noise.dB.toDouble().toTwoDecimalString()} dB")
+            Text("Loud? ${noise.isLoud}")
+        } else {
+            Text("Loading noise data...")
         }
     }
 }
