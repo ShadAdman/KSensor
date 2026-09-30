@@ -59,6 +59,23 @@ class IosNetworkPlugin : NetworkPlugin {
             }
         }
     }
+
+    override fun callState(): StatePlugin<StateData.CallStateStatus> {
+        return object : StatePlugin<StateData.CallStateStatus> {
+            override val id: PluginId = PluginId.NETWORK
+            override val requiredPermissions: List<Permission> = emptyList()
+            override val currentState: KSensorResponse<StateData.CallStateStatus>
+                get() = KSensorResponse(CallStateMonitoring {}.getCurrentStatus())
+
+            override fun observe(): Flow<KSensorResponse<StateData.CallStateStatus>> = callbackFlow {
+                val monitoring = CallStateMonitoring { status ->
+                    trySend(KSensorResponse(status))
+                }
+                monitoring.startMonitoring()
+                awaitClose { monitoring.stopMonitoring() }
+            }
+        }
+    }
 }
 
 actual fun createNetworkPlugin(): NetworkPlugin = IosNetworkPlugin()
