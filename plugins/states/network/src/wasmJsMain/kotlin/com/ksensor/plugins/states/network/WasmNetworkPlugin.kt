@@ -18,6 +18,7 @@ class WasmNetworkPlugin : NetworkPlugin {
 
     override fun connectivity(): StatePlugin<StateData.ConnectivityStatus> = noopState(StateData.ConnectivityStatus(false))
     override fun activeNetwork(): StatePlugin<StateData.CurrentActiveNetwork> = noopState(StateData.CurrentActiveNetwork(StateData.CurrentActiveNetwork.ActiveNetwork.NONE))
+    override fun callState(): StatePlugin<StateData.CallStateStatus> = noopState(StateData.CallStateStatus(StateData.CallStateStatus.CallState.IDLE, false))
 }
 
 private fun <T> noopState(value: T): StatePlugin<T> = object : StatePlugin<T> {
