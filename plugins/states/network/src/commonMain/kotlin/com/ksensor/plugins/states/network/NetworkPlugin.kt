@@ -7,6 +7,7 @@ import com.ksensor.core.model.StateData
 interface NetworkPlugin : KSensorPlugin {
     fun connectivity(): StatePlugin<StateData.ConnectivityStatus>
     fun activeNetwork(): StatePlugin<StateData.CurrentActiveNetwork>
+    fun callState(): StatePlugin<StateData.CallStateStatus>
 }
 
 expect fun createNetworkPlugin(): NetworkPlugin

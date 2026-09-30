@@ -1,14 +1,15 @@
 package com.ksensor.plugins.states.network
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import com.ksensor.core.Permission
-import com.ksensor.core.model.PluginId
 import com.ksensor.core.StatePlugin
 import com.ksensor.core.context.KSensorContext
 import com.ksensor.core.model.KSensorResponse
+import com.ksensor.core.model.PluginId
 import com.ksensor.core.model.StateData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,9 +20,10 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.shareIn
 
+@SuppressLint("MissingPermission")
 class AndroidNetworkPlugin : NetworkPlugin {
     override val id: PluginId = PluginId.NETWORK
-    override val requiredPermissions: List<Permission> = emptyList()
+    override val requiredPermissions: List<Permission> = listOf(Permission.READ_PHONE_STATE)
 
     private val connectivityManager by lazy {
         KSensorContext.get().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -75,6 +77,27 @@ class AndroidNetworkPlugin : NetworkPlugin {
     }
 
     override fun activeNetwork(): StatePlugin<StateData.CurrentActiveNetwork> = activeNetworkPlugin
+
+    private val callStateFlow by lazy {
+        callbackFlow {
+            val monitoring = CallStateMonitoring(KSensorContext.get()) { status ->
+                trySend(KSensorResponse(status))
+            }
+            monitoring.startMonitoring()
+            awaitClose { monitoring.stopMonitoring() }
+        }.shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
+    }
+
+    private val callStatePluginInstance = object : StatePlugin<StateData.CallStateStatus> {
+        override val id: PluginId = PluginId.NETWORK
+        override val requiredPermissions: List<Permission> = listOf(Permission.READ_PHONE_STATE)
+        override val currentState: KSensorResponse<StateData.CallStateStatus>
+            get() = KSensorResponse(CallStateMonitoring(KSensorContext.get()) {}.getCurrentStatus())
+
+        override fun observe(): Flow<KSensorResponse<StateData.CallStateStatus>> = callStateFlow
+    }
+
+    override fun callState(): StatePlugin<StateData.CallStateStatus> = callStatePluginInstance
 
     private fun isConnected(): Boolean {
         val network = connectivityManager.activeNetwork ?: return false
