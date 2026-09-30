@@ -15,7 +15,8 @@ enum class StateType {
     BLE_DISCOVERS,
     STORAGE,
     BRIGHTNESS,
-    RESOURCES
+    RESOURCES,
+    CALL_STATE
 }
 
 data class BleDevice(val id: String, val name: String, val isAudio: Boolean = false)
@@ -96,5 +97,17 @@ sealed class StateData {
             val usedBytes: Long,
             val freeBytes: Long
         )
+    }
+
+    data class CallStateStatus(
+        val state: CallState,
+        val isInCall: Boolean
+    ) : StateData() {
+        enum class CallState {
+            IDLE,
+            RINGING,
+            OFFHOOK,
+            UNKNOWN
+        }
     }
 }
