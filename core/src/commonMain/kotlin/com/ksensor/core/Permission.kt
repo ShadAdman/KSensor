@@ -11,7 +11,8 @@ enum class Permission {
     ACTIVITY_RECOGNITION,
     BODY_SENSORS,
     CAMERA,
-    RECORD_AUDIO
+    RECORD_AUDIO,
+    READ_PHONE_STATE
 }
 
 enum class PermissionStatus {

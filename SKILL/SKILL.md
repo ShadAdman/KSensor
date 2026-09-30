@@ -103,6 +103,8 @@ Vital signs and biological data.
 ### Network (`NETWORK`)
 - **Connectivity**: Online/Offline status.
 - **Active Network**: Type detection (WiFi, Cellular, None).
+- **Call State**: Telephony call state monitoring (`IDLE`, `RINGING`, `OFFHOOK`, `UNKNOWN`) and in-call status (`isInCall`).
+- **Permissions**: `READ_PHONE_STATE` (Android, required for `callState()`).
 
 ### System (`SYSTEM`)
 - **Battery**: Level, charging state, health, temperature.
@@ -122,6 +124,7 @@ Vital signs and biological data.
 
 ### Lifecycle (`LIFECYCLE`)
 - **App Visibility**: Tracks if the app is in foreground or background.
+
 
 ---
 

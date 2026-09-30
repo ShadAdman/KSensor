@@ -38,6 +38,7 @@ kotlin {
             implementation(projects.plugins.sensors.health)
             implementation(projects.plugins.states.system)
             implementation(projects.plugins.sensors.environment)
+            implementation(projects.plugins.states.network)
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)

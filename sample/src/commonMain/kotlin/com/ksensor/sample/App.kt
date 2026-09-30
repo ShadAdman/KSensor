@@ -22,6 +22,8 @@ import com.ksensor.plugins.sensors.positioning.PositioningPlugin
 import com.ksensor.plugins.sensors.positioning.createPositioningPlugin
 import com.ksensor.plugins.states.bluetooth.BluetoothPlugin
 import com.ksensor.plugins.states.bluetooth.createBluetoothPlugin
+import com.ksensor.plugins.states.network.NetworkPlugin
+import com.ksensor.plugins.states.network.createNetworkPlugin
 import com.ksensor.plugins.states.system.SystemPlugin
 import com.ksensor.plugins.states.system.createSystemPlugin
 import kotlin.time.Duration.Companion.seconds
@@ -39,7 +41,8 @@ fun App() {
                 Permission.LOCATION,
                 Permission.BODY_SENSORS,
                 Permission.CAMERA,
-                Permission.RECORD_AUDIO
+                Permission.RECORD_AUDIO,
+                Permission.READ_PHONE_STATE
             )
             var grantedPermissions by remember {
                 mutableStateOf(permissions.filter { KSensor.permissionHandler.hasPermission(it) }.toSet())
@@ -407,6 +410,29 @@ private fun Double.toTwoDecimalString(): String {
     val integerPart = this.toLong()
     val decimalPart = ((this - integerPart) * 100).toLong()
     return "$integerPart.${decimalPart.toString().padStart(2, '0')}"
+}
+
+@Composable
+fun CallStateSample() {
+    val plugin = remember {
+        KSensor.get<NetworkPlugin>(PluginId.NETWORK)
+            ?: createNetworkPlugin().also { KSensor.register(it) }
+    }
+
+    val callStateResponse by plugin.callState().observe().collectAsState(null)
+    val callStateStatus = callStateResponse?.data
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text("Call State Sample (via NetworkPlugin)", style = MaterialTheme.typography.h5)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (callStateStatus != null) {
+            Text("State: ${callStateStatus.state}", style = MaterialTheme.typography.h6)
+            Text("Is In Call: ${callStateStatus.isInCall}")
+        } else {
+            Text("Loading call state data...")
+        }
+    }
 }
 
 

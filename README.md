@@ -219,19 +219,26 @@ These plugins provide monitoring for various device system and connectivity stat
 
 ## Network States Plugin
 
-Provides information about the network connectivity of the device.
+Provides information about network connectivity and telephony call state on the device.
 
 Dependency:
 ```kotlin
 implementation("io.github.shadadman:ksensor-states-network:version")
 ```
 
-Required Permissions: None
+Required Permissions:
+- Android: `READ_PHONE_STATE` (Only required if using `callState()`)
+- iOS: None (Uses CallKit framework)
+
+### Android Configuration
+Add the following to your `AndroidManifest.xml` if using `callState()`:
+- `android.permission.READ_PHONE_STATE`
 
 Data Models (Wrapped in `KSensorResponse`):
 
 - Connectivity: `ConnectivityStatus(isConnected: Boolean)`
 - Active Network: `CurrentActiveNetwork(activeNetwork: ActiveNetwork)` (Values: WIFI, CELLULAR, NONE)
+- Call State: `CallStateStatus(state: CallState, isInCall: Boolean)` (CallState values: IDLE, RINGING, OFFHOOK, UNKNOWN)
 
 ## System States Plugin
 
