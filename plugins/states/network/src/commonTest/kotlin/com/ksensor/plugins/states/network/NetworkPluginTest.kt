@@ -36,6 +36,14 @@ class FakeNetworkPlugin : NetworkPlugin {
             MutableSharedFlow<KSensorResponse<StateData.CurrentActiveNetwork>>().asTrackedFlow("activeNetwork")
     }
 
+    override fun callState(): StatePlugin<StateData.CallStateStatus> = object : StatePlugin<StateData.CallStateStatus> {
+        override val id: PluginId = PluginId.NETWORK
+        override val requiredPermissions: List<Permission> = listOf(Permission.READ_PHONE_STATE)
+        override val currentState: KSensorResponse<StateData.CallStateStatus> get() = TODO()
+        override fun observe(): Flow<KSensorResponse<StateData.CallStateStatus>> =
+            MutableSharedFlow<KSensorResponse<StateData.CallStateStatus>>().asTrackedFlow("callState")
+    }
+
     private fun <T> Flow<T>.asTrackedFlow(name: String): Flow<T> {
         return this.onStart { activeObservers.add(name) }
             .onCompletion { activeObservers.remove(name) }
@@ -62,5 +70,15 @@ class NetworkPluginTest {
         assertTrue(fake.activeObservers.contains("activeNetwork"))
         job.cancelAndJoin()
         assertFalse(fake.activeObservers.contains("activeNetwork"))
+    }
+
+    @Test
+    fun testCallState() = runTest {
+        val fake = FakeNetworkPlugin()
+        val job = launch { fake.callState().observe().collect {} }
+        runCurrent()
+        assertTrue(fake.activeObservers.contains("callState"))
+        job.cancelAndJoin()
+        assertFalse(fake.activeObservers.contains("callState"))
     }
 }
