@@ -79,7 +79,8 @@ fun App() {
 //                HeadingSample()
 //                BrightnessSample()
 //                HealthSample()
-                NoiseSample()
+//                NoiseSample()
+                  CallStateSample()
             }
         }
     }
