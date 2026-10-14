@@ -14,4 +14,12 @@ class IosInteractionPluginTest {
             plugin.touchGestures().first()
         }
     }
+
+    @Test
+    fun testScroll() = runBlocking {
+        val plugin = IosInteractionPlugin()
+        val data = withTimeoutOrNull(2000) {
+            plugin.scroll().observe().first()
+        }
+    }
 }

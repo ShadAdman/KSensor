@@ -95,6 +95,7 @@ Vital signs and biological data.
 
 ### Interaction Sensors (`INTERACTION`)
 - **Touch Gestures**: Detects screen interactions (Taps, Swipes).
+- **Scroll**: Live horizontal/vertical position of the most recently scrolled native container and `isScrolling` status (`scroll()`).
 
 ---
 

@@ -16,7 +16,8 @@ enum class StateType {
     STORAGE,
     BRIGHTNESS,
     RESOURCES,
-    CALL_STATE
+    CALL_STATE,
+    SCROLL
 }
 
 data class BleDevice(val id: String, val name: String, val isAudio: Boolean = false)
@@ -110,4 +111,14 @@ sealed class StateData {
             UNKNOWN
         }
     }
+
+    /**
+     * Scroll position of the most recently scrolled container in the app.
+     * Positions are in pixels on Android and points on iOS, measured from the content start.
+     */
+    data class ScrollStatus(
+        val horizontalPosition: Float,
+        val verticalPosition: Float,
+        val isScrolling: Boolean
+    ) : StateData()
 }

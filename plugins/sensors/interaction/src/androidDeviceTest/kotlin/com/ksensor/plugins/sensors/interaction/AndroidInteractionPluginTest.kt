@@ -17,4 +17,12 @@ class AndroidInteractionPluginTest {
             plugin.touchGestures().first()
         }
     }
+
+    @Test
+    fun testScroll() = runBlocking {
+        val plugin = AndroidInteractionPlugin()
+        val data = withTimeoutOrNull(2000) {
+            plugin.scroll().observe().first()
+        }
+    }
 }

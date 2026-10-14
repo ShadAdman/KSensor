@@ -172,6 +172,10 @@ Required Permissions: None
 Data Models (Wrapped in `KSensorResponse`):
 
 - Touch Gestures: `TouchGestures(x: Float, y: Float, type: TouchGestureType)`
+- Scroll: `ScrollStatus(horizontalPosition: Float, verticalPosition: Float, isScrolling: Boolean)` (via `scroll()`)
+
+> [!NOTE]
+> `scroll()` reports the position of the most recently scrolled native container (Android: `ScrollView`, `HorizontalScrollView`, `RecyclerView`, `ListView`, `WebView`, ...; iOS: any `UIScrollView`). Positions are in pixels on Android and points on iOS. `isScrolling` becomes `false` once scrolling has been idle for 300 ms. Compose scroll containers (e.g. `LazyColumn`) are not observed because they don't use platform scroll views.
 
 ## Health Sensors Plugin
 

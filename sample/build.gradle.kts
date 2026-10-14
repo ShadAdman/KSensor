@@ -39,6 +39,7 @@ kotlin {
             implementation(projects.plugins.states.system)
             implementation(projects.plugins.sensors.environment)
             implementation(projects.plugins.states.network)
+            implementation(projects.plugins.sensors.interaction)
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
