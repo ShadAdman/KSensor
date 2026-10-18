@@ -175,7 +175,9 @@ Data Models (Wrapped in `KSensorResponse`):
 - Scroll: `ScrollStatus(horizontalPosition: Float, verticalPosition: Float, isScrolling: Boolean)` (via `scroll()`)
 
 > [!NOTE]
-> `scroll()` reports the position of the most recently scrolled native container (Android: `ScrollView`, `HorizontalScrollView`, `RecyclerView`, `ListView`, `WebView`, ...; iOS: any `UIScrollView`). Positions are in pixels on Android and points on iOS. `isScrolling` becomes `false` once scrolling has been idle for 300 ms. Compose scroll containers (e.g. `LazyColumn`) are not observed because they don't use platform scroll views.
+> `scroll()` reports the position of the most recently scrolled native container (Android: `ScrollView`, `HorizontalScrollView`, `RecyclerView`, `ListView`, `WebView`, ...; iOS: any `UIScrollView`). Positions are in pixels on Android and points on iOS. `isScrolling` becomes `false` once scrolling has been idle for 300 ms. 
+> 
+> **Important:** This scroll observation is for native containers (`AndroidView` and `UIKitView`), **not** Jetpack Compose components. For Jetpack Compose, you can observe scroll position directly using `scrollState.value`.
 
 ## Health Sensors Plugin
 
