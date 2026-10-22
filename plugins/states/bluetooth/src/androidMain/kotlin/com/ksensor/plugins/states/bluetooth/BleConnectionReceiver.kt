@@ -26,12 +26,16 @@ internal class BleConnectionReceiver(
 
     private val profileListener = object : BluetoothProfile.ServiceListener {
         override fun onServiceConnected(profile: Int, proxy: BluetoothProfile) {
-            proxies[profile] = proxy
+            synchronized(proxies) {
+                proxies[profile] = proxy
+            }
             emitCurrentState()
         }
 
         override fun onServiceDisconnected(profile: Int) {
-            proxies.remove(profile)
+            synchronized(proxies) {
+                proxies.remove(profile)
+            }
             emitCurrentState()
         }
     }
@@ -39,7 +43,7 @@ internal class BleConnectionReceiver(
     private val monitoredProfiles = listOf(
         BluetoothProfile.A2DP,
         BluetoothProfile.HEADSET,
-        4 // BluetoothProfile.HID_HOST (some versions might not have the constant accessible easily)
+        4 // BluetoothProfile.HID_HOST
     )
 
     fun register() {
@@ -72,14 +76,22 @@ internal class BleConnectionReceiver(
         } catch (_: Exception) {
         }
         
-        proxies.forEach { (profile, proxy) ->
+        val proxiesToClose = synchronized(proxies) {
+            val list = proxies.entries.toList()
+            proxies.clear()
+            list
+        }
+
+        proxiesToClose.forEach { (profile, proxy) ->
             try {
                 bluetoothAdapter?.closeProfileProxy(profile, proxy)
             } catch (_: Exception) {
             }
         }
-        proxies.clear()
-        aclConnectedDevices.clear()
+
+        synchronized(aclConnectedDevices) {
+            aclConnectedDevices.clear()
+        }
     }
 
     override fun onReceive(context: Context?, intent: Intent?) {
@@ -93,15 +105,25 @@ internal class BleConnectionReceiver(
 
         when (action) {
             BluetoothDevice.ACTION_ACL_CONNECTED -> {
-                device?.let { aclConnectedDevices[it.address] = it }
+                device?.let {
+                    synchronized(aclConnectedDevices) {
+                        aclConnectedDevices[it.address] = it
+                    }
+                }
             }
             BluetoothDevice.ACTION_ACL_DISCONNECTED -> {
-                device?.let { aclConnectedDevices.remove(it.address) }
+                device?.let {
+                    synchronized(aclConnectedDevices) {
+                        aclConnectedDevices.remove(it.address)
+                    }
+                }
             }
             BluetoothAdapter.ACTION_STATE_CHANGED -> {
                 val state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)
                 if (state == BluetoothAdapter.STATE_OFF) {
-                    aclConnectedDevices.clear()
+                    synchronized(aclConnectedDevices) {
+                        aclConnectedDevices.clear()
+                    }
                 }
             }
         }
@@ -123,7 +145,8 @@ internal class BleConnectionReceiver(
             } catch (_: Exception) {}
 
             // 2. Check all proxies
-            proxies.forEach { (profile, proxy) ->
+            val proxiesCopy = synchronized(proxies) { proxies.entries.toList() }
+            proxiesCopy.forEach { (profile, proxy) ->
                 try {
                     proxy.connectedDevices.forEach { device ->
                         connectedDevices.add(device)
@@ -135,9 +158,12 @@ internal class BleConnectionReceiver(
             }
 
             // 3. Include devices tracked via ACL broadcasts
-            connectedDevices.addAll(aclConnectedDevices.values)
+            val aclDevicesCopy = synchronized(aclConnectedDevices) { aclConnectedDevices.values.toList() }
+            connectedDevices.addAll(aclDevicesCopy)
         } else {
-            aclConnectedDevices.clear()
+            synchronized(aclConnectedDevices) {
+                aclConnectedDevices.clear()
+            }
         }
 
         val bleDevices = connectedDevices.map { device ->

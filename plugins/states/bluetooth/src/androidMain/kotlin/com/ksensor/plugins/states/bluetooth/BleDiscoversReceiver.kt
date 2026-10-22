@@ -32,7 +32,9 @@ internal class BleDiscoversReceiver(
                 id = device.address,
                 name = device.name ?: "Unknown Device"
             )
-            discoveredDevices[bleDevice.id] = bleDevice
+            synchronized(discoveredDevices) {
+                discoveredDevices[bleDevice.id] = bleDevice
+            }
             emitCurrentState()
         }
 
@@ -49,7 +51,9 @@ internal class BleDiscoversReceiver(
                 startScanInternal()
             } else if (state == BluetoothAdapter.STATE_OFF) {
                 stopScanInternal()
-                discoveredDevices.clear()
+                synchronized(discoveredDevices) {
+                    discoveredDevices.clear()
+                }
                 emitCurrentState()
             }
         }
@@ -103,6 +107,7 @@ internal class BleDiscoversReceiver(
     }
 
     private fun emitCurrentState() {
-        onData(StateData.BleDiscoversStatus(discoveredDevices.values.toList()))
+        val devices = synchronized(discoveredDevices) { discoveredDevices.values.toList() }
+        onData(StateData.BleDiscoversStatus(devices))
     }
 }
