@@ -9,6 +9,8 @@ import com.ksensor.core.KSensor
 import com.ksensor.core.model.PluginId
 import com.ksensor.plugins.sensors.positioning.PositioningPlugin
 import com.ksensor.plugins.sensors.positioning.createPositioningPlugin
+import com.ksensor.sample.MetricCard
+import com.ksensor.sample.StatusBadge
 import com.ksensor.sample.toTwoDecimalString
 
 @Composable
@@ -20,14 +22,12 @@ fun LocationSample() {
 
     val location by plugin.location().collectAsState(null)
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Location Plugin Sample", style = MaterialTheme.typography.h5)
-        Spacer(modifier = Modifier.height(16.dp))
+    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text("Location", style = MaterialTheme.typography.h5)
 
-        Text("Current Location:", style = MaterialTheme.typography.h6)
-        Text("Latitude: ${location?.data?.latitude ?: "N/A"}")
-        Text("Longitude: ${location?.data?.longitude ?: "N/A"}")
-        Text("Altitude: ${location?.data?.altitude ?: "N/A"}")
+        MetricCard(title = "Latitude", value = location?.data?.latitude?.toString() ?: "N/A")
+        MetricCard(title = "Longitude", value = location?.data?.longitude?.toString() ?: "N/A")
+        MetricCard(title = "Altitude", value = location?.data?.altitude?.toString() ?: "N/A")
     }
 }
 
@@ -41,17 +41,20 @@ fun HeadingSample() {
     val headingResponse by plugin.heading().collectAsState(null)
     val heading = headingResponse?.data
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Heading Plugin Sample", style = MaterialTheme.typography.h5)
-        Spacer(modifier = Modifier.height(16.dp))
+    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text("Heading", style = MaterialTheme.typography.h5)
 
         if (heading != null) {
-            Text("Magnetic Heading: ${heading.magneticHeading.toTwoDecimalString()}°")
-            Text("True Heading: ${heading.trueHeading.toTwoDecimalString()}°")
-            Text("Device Heading: ${heading.deviceHeading.toTwoDecimalString()}°")
-            Text("Course Over Ground: ${heading.courseOverGround.toTwoDecimalString()}°")
+            MetricCard(title = "Magnetic Heading", value = "${heading.magneticHeading.toTwoDecimalString()}°")
+            MetricCard(title = "True Heading", value = "${heading.trueHeading.toTwoDecimalString()}°")
+            MetricCard(title = "Device Heading", value = "${heading.deviceHeading.toTwoDecimalString()}°")
+            MetricCard(title = "Course Over Ground", value = "${heading.courseOverGround.toTwoDecimalString()}°")
         } else {
-            Text("Waiting for heading data...")
+            Card(elevation = 2.dp, modifier = Modifier.fillMaxWidth()) {
+                Box(modifier = Modifier.padding(32.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                    Text("Waiting for heading data...")
+                }
+            }
         }
     }
 }
@@ -65,14 +68,17 @@ fun OrientationSample() {
 
     val orientation by plugin.orientation().collectAsState(null)
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Orientation Plugin Sample", style = MaterialTheme.typography.h5)
-        Spacer(modifier = Modifier.height(16.dp))
+    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text("Orientation", style = MaterialTheme.typography.h5)
 
         if (orientation != null) {
-            Text("Orientation Data: ${orientation?.data}")
+            MetricCard(title = "Device Orientation", value = orientation?.data?.orientation?.name ?: "N/A")
         } else {
-            Text("Waiting for orientation data...")
+            Card(elevation = 2.dp, modifier = Modifier.fillMaxWidth()) {
+                Box(modifier = Modifier.padding(32.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                    Text("Waiting for orientation data...")
+                }
+            }
         }
     }
 }
@@ -86,17 +92,20 @@ fun MagnetometerSample() {
 
     val magnetometer by plugin.magnetometer().collectAsState(null)
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Magnetometer Sample", style = MaterialTheme.typography.h5)
-        Spacer(modifier = Modifier.height(16.dp))
+    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text("Magnetometer", style = MaterialTheme.typography.h5)
 
         if (magnetometer != null) {
             val data = magnetometer?.data
-            Text("X: ${data?.values?.x?.toDouble()?.toTwoDecimalString() ?: "N/A"} µT")
-            Text("Y: ${data?.values?.y?.toDouble()?.toTwoDecimalString() ?: "N/A"} µT")
-            Text("Z: ${data?.values?.z?.toDouble()?.toTwoDecimalString() ?: "N/A"} µT")
+            MetricCard(title = "X Axis", value = "${data?.values?.x?.toDouble()?.toTwoDecimalString() ?: "N/A"} µT")
+            MetricCard(title = "Y Axis", value = "${data?.values?.y?.toDouble()?.toTwoDecimalString() ?: "N/A"} µT")
+            MetricCard(title = "Z Axis", value = "${data?.values?.z?.toDouble()?.toTwoDecimalString() ?: "N/A"} µT")
         } else {
-            Text("Waiting for magnetometer data...")
+            Card(elevation = 2.dp, modifier = Modifier.fillMaxWidth()) {
+                Box(modifier = Modifier.padding(32.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                    Text("Waiting for magnetometer data...")
+                }
+            }
         }
     }
 }
@@ -111,14 +120,20 @@ fun LocationStatusSample() {
     val statusResponse by plugin.locationStatus().observe().collectAsState(null)
     val status = statusResponse?.data
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Location Status Sample", style = MaterialTheme.typography.h5)
-        Spacer(modifier = Modifier.height(16.dp))
+    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text("Location Status", style = MaterialTheme.typography.h5)
 
         if (status != null) {
-            Text("Is Location On: ${status.isLocationOn}")
+            StatusBadge(
+                text = if (status.isLocationOn) "GPS Enabled" else "GPS Disabled",
+                isActive = status.isLocationOn
+            )
         } else {
-            Text("Loading location status...")
+            Card(elevation = 2.dp, modifier = Modifier.fillMaxWidth()) {
+                Box(modifier = Modifier.padding(32.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                    Text("Loading location status...")
+                }
+            }
         }
     }
 }

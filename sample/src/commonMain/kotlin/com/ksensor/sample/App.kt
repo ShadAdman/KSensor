@@ -3,7 +3,9 @@ package com.ksensor.sample
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -41,10 +43,16 @@ sealed class Screen {
     data class PluginDetail(val pluginCatalog: PluginCatalog) : Screen()
 }
 
+enum class CatalogCategory { SENSORS, STATES }
+
 data class PluginCatalog(
     val id: PluginId,
     val title: String,
     val description: String,
+    val category: CatalogCategory,
+    val capabilities: List<String>,
+    val dataTypeExamples: List<String>,
+    val permissionNotes: String,
     val getOrCreatePlugin: () -> KSensorPlugin,
     val observers: List<ObserverSample>
 )
@@ -67,6 +75,14 @@ fun App() {
                         id = PluginId.POSITIONING,
                         title = "Positioning Plugin",
                         description = "Provides Location, Heading, Orientation, Magnetometer, and Location Status.",
+                        category = CatalogCategory.SENSORS,
+                        capabilities = listOf("Location", "Heading", "Orientation", "Magnetometer"),
+                        dataTypeExamples = listOf(
+                            "Location(latitude=37.42, longitude=-122.08, altitude=10.0)",
+                            "Heading(magneticHeading=45.0, trueHeading=42.0)",
+                            "Magnetometer(values=Vector3(x=12.5, y=-5.2, z=45.1))"
+                        ),
+                        permissionNotes = "Requires ACCESS_FINE_LOCATION / ACCESS_COARSE_LOCATION on Android and WhenInUse authorization on iOS.",
                         getOrCreatePlugin = {
                             KSensor.get<com.ksensor.plugins.sensors.positioning.PositioningPlugin>(PluginId.POSITIONING)
                                 ?: createPositioningPlugin().also { KSensor.register(it) }
@@ -83,6 +99,14 @@ fun App() {
                         id = PluginId.MOTION,
                         title = "Motion Plugin",
                         description = "Detects motion, accelerometer, gyroscope, and step counter.",
+                        category = CatalogCategory.SENSORS,
+                        capabilities = listOf("Motion", "Accelerometer", "Gyroscope", "StepCounter"),
+                        dataTypeExamples = listOf(
+                            "MotionDetector(type=WALKING)",
+                            "Accelerometer(values=Vector3(x=0.0, y=9.8, z=0.1))",
+                            "StepCounter(steps=1250)"
+                        ),
+                        permissionNotes = "Requires ACTIVITY_RECOGNITION permission on Android for step counting and motion detection.",
                         getOrCreatePlugin = {
                             KSensor.get<com.ksensor.plugins.sensors.motion.MotionPlugin>(PluginId.MOTION)
                                 ?: createMotionPlugin().also { KSensor.register(it) }
@@ -98,6 +122,12 @@ fun App() {
                         id = PluginId.HEALTH,
                         title = "Health Plugin",
                         description = "Measures heart rate via sensors or Camera PPG.",
+                        category = CatalogCategory.SENSORS,
+                        capabilities = listOf("HeartRate", "CameraPPG"),
+                        dataTypeExamples = listOf(
+                            "HeartRate(heartRate=72.0f, source=CAMERA_PPG, confidence=0.85f)"
+                        ),
+                        permissionNotes = "Requires BODY_SENSORS and CAMERA permissions for optical PPG heart rate monitoring.",
                         getOrCreatePlugin = {
                             KSensor.get<com.ksensor.plugins.sensors.health.HealthPlugin>(PluginId.HEALTH)
                                 ?: createHealthPlugin().also { KSensor.register(it) }
@@ -110,6 +140,14 @@ fun App() {
                         id = PluginId.ENVIRONMENT,
                         title = "Environment Plugin",
                         description = "Measures noise, barometer, light, and proximity.",
+                        category = CatalogCategory.SENSORS,
+                        capabilities = listOf("Noise", "Barometer", "Light", "Proximity"),
+                        dataTypeExamples = listOf(
+                            "Noise(dB=45.5f, isLoud=false)",
+                            "Barometer(pressure=1013.25f)",
+                            "LightIlluminance(illuminance=350.0f)"
+                        ),
+                        permissionNotes = "Noise monitoring requires RECORD_AUDIO permission. Barometer/Light/Proximity require no runtime permissions.",
                         getOrCreatePlugin = {
                             KSensor.get<com.ksensor.plugins.sensors.environment.EnvironmentPlugin>(PluginId.ENVIRONMENT)
                                 ?: createEnvironmentPlugin().also { KSensor.register(it) }
@@ -125,6 +163,12 @@ fun App() {
                         id = PluginId.BLUETOOTH,
                         title = "Bluetooth Plugin",
                         description = "Monitors connected, discovered, and audio Bluetooth devices.",
+                        category = CatalogCategory.STATES,
+                        capabilities = listOf("Bluetooth", "Connections", "Discoveries", "Audio"),
+                        dataTypeExamples = listOf(
+                            "BleConnectionStatus(connectedDevices=[BleDevice(id=\"00:11...\", name=\"Headphones\")])"
+                        ),
+                        permissionNotes = "Requires BLUETOOTH_SCAN and BLUETOOTH_CONNECT permissions (API 31+) on Android.",
                         getOrCreatePlugin = {
                             KSensor.get<com.ksensor.plugins.states.bluetooth.BluetoothPlugin>(PluginId.BLUETOOTH)
                                 ?: createBluetoothPlugin().also { KSensor.register(it) }
@@ -138,6 +182,14 @@ fun App() {
                         id = PluginId.SYSTEM,
                         title = "System Plugin",
                         description = "Monitors brightness, storage, resources, battery, volume, locale, screen state, lock, and power save.",
+                        category = CatalogCategory.STATES,
+                        capabilities = listOf("Brightness", "Storage", "Resources", "Battery", "Volume", "Locale", "Screen", "Lock", "PowerSave"),
+                        dataTypeExamples = listOf(
+                            "BrightnessStatus(screenBrightness=80)",
+                            "BatteryStatus(levelPercent=85, chargingState=CHARGING)",
+                            "StorageStatus(totalBytes=..., freeBytes=...)"
+                        ),
+                        permissionNotes = "No runtime permissions required for system states.",
                         getOrCreatePlugin = {
                             KSensor.get<com.ksensor.plugins.states.system.SystemPlugin>(PluginId.SYSTEM)
                                 ?: createSystemPlugin().also { KSensor.register(it) }
@@ -158,6 +210,13 @@ fun App() {
                         id = PluginId.NETWORK,
                         title = "Network Plugin",
                         description = "Monitors connectivity, active network, and call state.",
+                        category = CatalogCategory.STATES,
+                        capabilities = listOf("Network", "CallState", "Connectivity"),
+                        dataTypeExamples = listOf(
+                            "CallStateStatus(state=IDLE, isInCall=false)",
+                            "ConnectivityStatus(isConnected=true)"
+                        ),
+                        permissionNotes = "Call State monitoring requires READ_PHONE_STATE permission on Android.",
                         getOrCreatePlugin = {
                             KSensor.get<com.ksensor.plugins.states.network.NetworkPlugin>(PluginId.NETWORK)
                                 ?: createNetworkPlugin().also { KSensor.register(it) }
@@ -172,6 +231,13 @@ fun App() {
                         id = PluginId.INTERACTION,
                         title = "Interaction Plugin",
                         description = "Monitors touch gestures and scroll position.",
+                        category = CatalogCategory.SENSORS,
+                        capabilities = listOf("Scroll", "TouchGestures"),
+                        dataTypeExamples = listOf(
+                            "ScrollStatus(horizontalPosition=0.0f, verticalPosition=120.0f, isScrolling=true)",
+                            "TouchGestures(x=100.0f, y=250.0f, type=TAP)"
+                        ),
+                        permissionNotes = "No special runtime permissions required.",
                         getOrCreatePlugin = {
                             KSensor.get<com.ksensor.plugins.sensors.interaction.InteractionPlugin>(PluginId.INTERACTION)
                                 ?: createInteractionPlugin().also { KSensor.register(it) }
@@ -185,6 +251,12 @@ fun App() {
                         id = PluginId.LIFECYCLE,
                         title = "Lifecycle Plugin",
                         description = "Monitors application visibility and lifecycle state.",
+                        category = CatalogCategory.STATES,
+                        capabilities = listOf("Lifecycle", "AppVisibility"),
+                        dataTypeExamples = listOf(
+                            "AppVisibilityStatus(isAppVisible=true)"
+                        ),
+                        permissionNotes = "No runtime permissions required.",
                         getOrCreatePlugin = {
                             KSensor.get<com.ksensor.plugins.states.lifecycle.LifecyclePlugin>(PluginId.LIFECYCLE)
                                 ?: createLifecyclePlugin().also { KSensor.register(it) }
@@ -214,6 +286,23 @@ fun App() {
 
 @Composable
 fun CatalogScreen(items: List<PluginCatalog>, onSelectPlugin: (PluginCatalog) -> Unit) {
+    var searchQuery by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf<CatalogCategory?>(null) }
+    var selectedCapability by remember { mutableStateOf<String?>(null) }
+
+    val allCapabilities = remember(items) { items.flatMap { it.capabilities }.distinct() }
+
+    val filteredItems = remember(items, searchQuery, selectedCategory, selectedCapability) {
+        items.filter { item ->
+            val matchesSearch = searchQuery.isBlank() ||
+                    item.title.contains(searchQuery, ignoreCase = true) ||
+                    item.description.contains(searchQuery, ignoreCase = true)
+            val matchesCategory = selectedCategory == null || item.category == selectedCategory
+            val matchesCapability = selectedCapability == null || item.capabilities.contains(selectedCapability)
+            matchesSearch && matchesCategory && matchesCapability
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -221,36 +310,129 @@ fun CatalogScreen(items: List<PluginCatalog>, onSelectPlugin: (PluginCatalog) ->
             )
         }
     ) { padding ->
-        LazyColumn(
+        Column(
             modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            item {
-                Text(
-                    "Select a Plugin to test its sensors and state observers:",
-                    style = MaterialTheme.typography.subtitle1,
-                    modifier = Modifier.padding(bottom = 8.dp)
+            // Search Bar
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                label = { Text("Search plugins...") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp)
+            )
+
+            // Category Filter Chips
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(
+                    selected = selectedCategory == null,
+                    onClick = { selectedCategory = null },
+                    label = { Text("All Categories") }
+                )
+                FilterChip(
+                    selected = selectedCategory == CatalogCategory.SENSORS,
+                    onClick = { selectedCategory = CatalogCategory.SENSORS },
+                    label = { Text("Sensors") }
+                )
+                FilterChip(
+                    selected = selectedCategory == CatalogCategory.STATES,
+                    onClick = { selectedCategory = CatalogCategory.STATES },
+                    label = { Text("States") }
                 )
             }
-            items(items) { catalogItem ->
-                Card(
-                    elevation = 4.dp,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onSelectPlugin(catalogItem) }
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(catalogItem.title, style = MaterialTheme.typography.h6)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(catalogItem.description, style = MaterialTheme.typography.body2)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            "Observers: ${catalogItem.observers.joinToString { it.name }}",
-                            style = MaterialTheme.typography.caption,
-                            color = MaterialTheme.colors.primary
-                        )
+
+            // Capability Filter Row
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                item {
+                    FilterChip(
+                        selected = selectedCapability == null,
+                        onClick = { selectedCapability = null },
+                        label = { Text("All Capabilities") }
+                    )
+                }
+                items(allCapabilities) { cap ->
+                    FilterChip(
+                        selected = selectedCapability == cap,
+                        onClick = { selectedCapability = if (selectedCapability == cap) null else cap },
+                        label = { Text(cap) }
+                    )
+                }
+            }
+
+            Divider(modifier = Modifier.padding(vertical = 4.dp))
+
+            // Catalog List
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().weight(1f),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(filteredItems) { catalogItem ->
+                    Card(
+                        elevation = 3.dp,
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelectPlugin(catalogItem) }
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(catalogItem.title, style = MaterialTheme.typography.h6)
+                                Surface(
+                                    shape = RoundedCornerShape(50),
+                                    color = MaterialTheme.colors.primary.copy(alpha = 0.1f)
+                                ) {
+                                    Text(
+                                        text = catalogItem.category.name,
+                                        style = MaterialTheme.typography.caption,
+                                        color = MaterialTheme.colors.primary,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(catalogItem.description, style = MaterialTheme.typography.body2)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                catalogItem.capabilities.take(3).forEach { cap ->
+                                    Surface(
+                                        shape = RoundedCornerShape(4.dp),
+                                        color = MaterialTheme.colors.secondary.copy(alpha = 0.1f)
+                                    ) {
+                                        Text(
+                                            text = cap,
+                                            style = MaterialTheme.typography.caption,
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun FilterChip(selected: Boolean, onClick: () -> Unit, label: @Composable () -> Unit) {
+    Surface(
+        shape = RoundedCornerShape(50),
+        color = if (selected) MaterialTheme.colors.primary else MaterialTheme.colors.surface,
+        elevation = if (selected) 2.dp else 1.dp,
+        modifier = Modifier.clickable(onClick = onClick)
+    ) {
+        Box(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), contentAlignment = Alignment.Center) {
+            CompositionLocalProvider(
+                LocalContentColor provides if (selected) MaterialTheme.colors.onPrimary else MaterialTheme.colors.onSurface
+            ) {
+                label()
             }
         }
     }
@@ -273,7 +455,7 @@ fun PluginDetailScreen(pluginCatalog: PluginCatalog, onBack: () -> Unit) {
                 title = { Text(pluginCatalog.title) },
                 navigationIcon = {
                     TextButton(onClick = onBack) {
-                        Text("Back", color = MaterialTheme.colors.onPrimary)
+                        Text("← Back", color = MaterialTheme.colors.onPrimary)
                     }
                 }
             )
@@ -308,39 +490,96 @@ fun PluginDetailScreen(pluginCatalog: PluginCatalog, onBack: () -> Unit) {
                     }
                 }
             } else {
-                // Permissions granted - show observers selection/testing UI
-                var selectedObserverIndex by remember { mutableStateOf(0) }
+                // Permissions granted - show info (permission notes & data examples) + observers testing UI
+                var selectedTab by remember { mutableStateOf(0) } // 0 = Live Test, 1 = Info & Docs
 
                 Column(modifier = Modifier.fillMaxSize()) {
-                    if (pluginCatalog.observers.size > 1) {
-                        ScrollableTabRow(
-                            selectedTabIndex = selectedObserverIndex,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            pluginCatalog.observers.forEachIndexed { index, observer ->
-                                Tab(
-                                    selected = selectedObserverIndex == index,
-                                    onClick = { selectedObserverIndex = index },
-                                    text = { Text(observer.name) }
-                                )
-                            }
-                        }
-                    } else if (pluginCatalog.observers.isNotEmpty()) {
-                        Surface(
-                            elevation = 2.dp,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = "Active Observer: ${pluginCatalog.observers[0].name}",
-                                style = MaterialTheme.typography.subtitle1,
-                                modifier = Modifier.padding(16.dp)
-                            )
-                        }
+                    TabRow(selectedTabIndex = selectedTab) {
+                        Tab(
+                            selected = selectedTab == 0,
+                            onClick = { selectedTab = 0 },
+                            text = { Text("Live Test") }
+                        )
+                        Tab(
+                            selected = selectedTab == 1,
+                            onClick = { selectedTab = 1 },
+                            text = { Text("Info & Documentation") }
+                        )
                     }
 
-                    Box(modifier = Modifier.fillMaxSize().weight(1f)) {
-                        if (pluginCatalog.observers.isNotEmpty()) {
-                            pluginCatalog.observers[selectedObserverIndex].content()
+                    if (selectedTab == 1) {
+                        // Info & Documentation Tab
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize().padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            item {
+                                Card(elevation = 2.dp, shape = RoundedCornerShape(12.dp)) {
+                                    Column(modifier = Modifier.padding(16.dp)) {
+                                        Text("Permission Notes", style = MaterialTheme.typography.h6, color = MaterialTheme.colors.primary)
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(pluginCatalog.permissionNotes, style = MaterialTheme.typography.body1)
+                                    }
+                                }
+                            }
+                            item {
+                                Card(elevation = 2.dp, shape = RoundedCornerShape(12.dp)) {
+                                    Column(modifier = Modifier.padding(16.dp)) {
+                                        Text("Data Type Examples", style = MaterialTheme.typography.h6, color = MaterialTheme.colors.primary)
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        pluginCatalog.dataTypeExamples.forEach { example ->
+                                            Surface(
+                                                shape = RoundedCornerShape(8.dp),
+                                                color = MaterialTheme.colors.surface,
+                                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                                            ) {
+                                                Text(
+                                                    text = example,
+                                                    style = MaterialTheme.typography.body2,
+                                                    modifier = Modifier.padding(12.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        // Live Test Tab
+                        var selectedObserverIndex by remember { mutableStateOf(0) }
+
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            if (pluginCatalog.observers.size > 1) {
+                                ScrollableTabRow(
+                                    selectedTabIndex = selectedObserverIndex,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    pluginCatalog.observers.forEachIndexed { index, observer ->
+                                        Tab(
+                                            selected = selectedObserverIndex == index,
+                                            onClick = { selectedObserverIndex = index },
+                                            text = { Text(observer.name) }
+                                        )
+                                    }
+                                }
+                            } else if (pluginCatalog.observers.isNotEmpty()) {
+                                Surface(
+                                    elevation = 2.dp,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        text = "Active Observer: ${pluginCatalog.observers[0].name}",
+                                        style = MaterialTheme.typography.subtitle1,
+                                        modifier = Modifier.padding(16.dp)
+                                    )
+                                }
+                            }
+
+                            Box(modifier = Modifier.fillMaxSize().weight(1f)) {
+                                if (pluginCatalog.observers.isNotEmpty()) {
+                                    pluginCatalog.observers[selectedObserverIndex].content()
+                                }
+                            }
                         }
                     }
                 }

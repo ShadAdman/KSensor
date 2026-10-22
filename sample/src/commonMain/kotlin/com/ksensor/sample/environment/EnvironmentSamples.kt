@@ -9,6 +9,9 @@ import com.ksensor.core.KSensor
 import com.ksensor.core.model.PluginId
 import com.ksensor.plugins.sensors.environment.EnvironmentPlugin
 import com.ksensor.plugins.sensors.environment.createEnvironmentPlugin
+import com.ksensor.sample.MetricCard
+import com.ksensor.sample.SparklineChart
+import com.ksensor.sample.StatusBadge
 import com.ksensor.sample.toTwoDecimalString
 
 @Composable
@@ -21,15 +24,37 @@ fun NoiseSample() {
     val noiseResponse by plugin.noise().collectAsState(null)
     val noise = noiseResponse?.data
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Noise Plugin Sample", style = MaterialTheme.typography.h5)
-        Spacer(modifier = Modifier.height(16.dp))
+    var history by remember { mutableStateOf(listOf<Float>()) }
+    LaunchedEffect(noise?.dB) {
+        if (noise != null) {
+            history = history + noise.dB
+        }
+    }
+
+    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text("Noise Meter", style = MaterialTheme.typography.h5)
 
         if (noise != null) {
-            Text("Noise Level: ${noise.dB.toDouble().toTwoDecimalString()} dB")
-            Text("Loud? ${noise.isLoud}")
+            MetricCard(
+                title = "Ambient Sound Level",
+                value = "${noise.dB.toDouble().toTwoDecimalString()} dB",
+                subtitle = if (noise.isLoud == true) "High noise detected" else "Normal sound level"
+            )
+
+            StatusBadge(
+                text = if (noise.isLoud == true) "Loud Environment" else "Quiet Environment",
+                isActive = noise.isLoud != true
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Text("Noise History Chart", style = MaterialTheme.typography.subtitle2)
+            SparklineChart(values = history)
         } else {
-            Text("Loading noise data...")
+            Card(elevation = 2.dp, modifier = Modifier.fillMaxWidth()) {
+                Box(modifier = Modifier.padding(32.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                    Text("Listening to ambient environment...")
+                }
+            }
         }
     }
 }
@@ -43,14 +68,20 @@ fun BarometerSample() {
 
     val barometer by plugin.barometer().collectAsState(null)
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Barometer Sample", style = MaterialTheme.typography.h5)
-        Spacer(modifier = Modifier.height(16.dp))
+    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text("Barometer", style = MaterialTheme.typography.h5)
 
         if (barometer != null) {
-            Text("Pressure: ${barometer?.data?.pressure?.toDouble()?.toTwoDecimalString() ?: "N/A"} hPa")
+            MetricCard(
+                title = "Atmospheric Pressure",
+                value = "${barometer?.data?.pressure?.toDouble()?.toTwoDecimalString() ?: "N/A"} hPa"
+            )
         } else {
-            Text("Waiting for barometer data...")
+            Card(elevation = 2.dp, modifier = Modifier.fillMaxWidth()) {
+                Box(modifier = Modifier.padding(32.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                    Text("Waiting for barometer data...")
+                }
+            }
         }
     }
 }
@@ -64,14 +95,20 @@ fun LightSample() {
 
     val light by plugin.light().collectAsState(null)
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Light Sensor Sample", style = MaterialTheme.typography.h5)
-        Spacer(modifier = Modifier.height(16.dp))
+    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text("Light Sensor", style = MaterialTheme.typography.h5)
 
         if (light != null) {
-            Text("Illuminance: ${light?.data?.illuminance?.toDouble()?.toTwoDecimalString() ?: "N/A"} lux")
+            MetricCard(
+                title = "Illuminance",
+                value = "${light?.data?.illuminance?.toDouble()?.toTwoDecimalString() ?: "N/A"} lux"
+            )
         } else {
-            Text("Waiting for light sensor data...")
+            Card(elevation = 2.dp, modifier = Modifier.fillMaxWidth()) {
+                Box(modifier = Modifier.padding(32.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                    Text("Waiting for light sensor data...")
+                }
+            }
         }
     }
 }
@@ -85,15 +122,25 @@ fun ProximitySample() {
 
     val proximity by plugin.proximity().collectAsState(null)
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Proximity Sensor Sample", style = MaterialTheme.typography.h5)
-        Spacer(modifier = Modifier.height(16.dp))
+    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text("Proximity Sensor", style = MaterialTheme.typography.h5)
 
         if (proximity != null) {
-            Text("Distance: ${proximity?.data?.distanceInCM?.toDouble()?.toTwoDecimalString() ?: "N/A"} cm")
-            Text("Is Near: ${proximity?.data?.isNear == true}")
+            val data = proximity?.data
+            MetricCard(
+                title = "Distance",
+                value = "${data?.distanceInCM?.toDouble()?.toTwoDecimalString() ?: "N/A"} cm"
+            )
+            StatusBadge(
+                text = if (data?.isNear == true) "Object Near" else "Object Far",
+                isActive = data?.isNear == true
+            )
         } else {
-            Text("Waiting for proximity data...")
+            Card(elevation = 2.dp, modifier = Modifier.fillMaxWidth()) {
+                Box(modifier = Modifier.padding(32.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                    Text("Waiting for proximity data...")
+                }
+            }
         }
     }
 }
