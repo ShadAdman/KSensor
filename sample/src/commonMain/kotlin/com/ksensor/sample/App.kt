@@ -1,5 +1,6 @@
 package com.ksensor.sample
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -7,60 +8,296 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.ksensor.core.KSensor
-import com.ksensor.core.Permission
+import com.ksensor.core.KSensorPlugin
 import com.ksensor.core.PermissionStatus
 import com.ksensor.core.model.PluginId
-import com.ksensor.core.model.SensorData
-import com.ksensor.plugins.sensors.interaction.InteractionPlugin
-import com.ksensor.plugins.sensors.interaction.createInteractionPlugin
-import com.ksensor.plugins.sensors.health.HealthPlugin
-import com.ksensor.plugins.sensors.health.createHealthPlugin
-import com.ksensor.plugins.sensors.motion.MotionPlugin
-import com.ksensor.plugins.sensors.motion.createMotionPlugin
-import com.ksensor.plugins.sensors.positioning.PositioningPlugin
-import com.ksensor.plugins.sensors.positioning.createPositioningPlugin
-import com.ksensor.plugins.states.bluetooth.BluetoothPlugin
-import com.ksensor.plugins.states.bluetooth.createBluetoothPlugin
-import com.ksensor.plugins.states.network.NetworkPlugin
-import com.ksensor.plugins.states.network.createNetworkPlugin
-import com.ksensor.plugins.states.system.SystemPlugin
-import com.ksensor.plugins.states.system.createSystemPlugin
-import kotlin.time.Duration.Companion.seconds
 
-import com.ksensor.plugins.sensors.environment.EnvironmentPlugin
+import com.ksensor.sample.positioning.*
+import com.ksensor.sample.motion.*
+import com.ksensor.sample.health.*
+import com.ksensor.sample.environment.*
+import com.ksensor.sample.bluetooth.*
+import com.ksensor.sample.system.*
+import com.ksensor.sample.network.*
+import com.ksensor.sample.interaction.*
+import com.ksensor.sample.lifecycle.*
+
+import com.ksensor.plugins.sensors.positioning.createPositioningPlugin
+import com.ksensor.plugins.sensors.motion.createMotionPlugin
+import com.ksensor.plugins.sensors.health.createHealthPlugin
 import com.ksensor.plugins.sensors.environment.createEnvironmentPlugin
+import com.ksensor.plugins.states.bluetooth.createBluetoothPlugin
+import com.ksensor.plugins.states.system.createSystemPlugin
+import com.ksensor.plugins.states.network.createNetworkPlugin
+import com.ksensor.plugins.sensors.interaction.createInteractionPlugin
+import com.ksensor.plugins.states.lifecycle.createLifecyclePlugin
+
+sealed class Screen {
+    object Catalog : Screen()
+    data class PluginDetail(val pluginCatalog: PluginCatalog) : Screen()
+}
+
+data class PluginCatalog(
+    val id: PluginId,
+    val title: String,
+    val description: String,
+    val getOrCreatePlugin: () -> KSensorPlugin,
+    val observers: List<ObserverSample>
+)
+
+data class ObserverSample(
+    val name: String,
+    val description: String,
+    val content: @Composable () -> Unit
+)
 
 @Composable
 fun App() {
     MaterialTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
-            val permissions = listOf(
-                Permission.BLUETOOTH,
-                Permission.ACTIVITY_RECOGNITION,
-                Permission.LOCATION,
-                Permission.BODY_SENSORS,
-                Permission.CAMERA,
-                Permission.RECORD_AUDIO,
-                Permission.READ_PHONE_STATE
-            )
-            var grantedPermissions by remember {
-                mutableStateOf(permissions.filter { KSensor.permissionHandler.hasPermission(it) }.toSet())
+            var currentScreen by remember { mutableStateOf<Screen>(Screen.Catalog) }
+
+            val catalogItems = remember {
+                listOf(
+                    PluginCatalog(
+                        id = PluginId.POSITIONING,
+                        title = "Positioning Plugin",
+                        description = "Provides Location, Heading, Orientation, Magnetometer, and Location Status.",
+                        getOrCreatePlugin = {
+                            KSensor.get<com.ksensor.plugins.sensors.positioning.PositioningPlugin>(PluginId.POSITIONING)
+                                ?: createPositioningPlugin().also { KSensor.register(it) }
+                        },
+                        observers = listOf(
+                            ObserverSample("Location", "Current latitude, longitude, and altitude") { LocationSample() },
+                            ObserverSample("Heading", "Magnetic and true heading details") { HeadingSample() },
+                            ObserverSample("Orientation", "Device orientation angles") { OrientationSample() },
+                            ObserverSample("Magnetometer", "Magnetic field strength across 3 axes") { MagnetometerSample() },
+                            ObserverSample("Location Status", "GPS / Location provider status") { LocationStatusSample() }
+                        )
+                    ),
+                    PluginCatalog(
+                        id = PluginId.MOTION,
+                        title = "Motion Plugin",
+                        description = "Detects motion, accelerometer, gyroscope, and step counter.",
+                        getOrCreatePlugin = {
+                            KSensor.get<com.ksensor.plugins.sensors.motion.MotionPlugin>(PluginId.MOTION)
+                                ?: createMotionPlugin().also { KSensor.register(it) }
+                        },
+                        observers = listOf(
+                            ObserverSample("Motion Detector", "Detects device motion and activity state") { MotionSample() },
+                            ObserverSample("Accelerometer", "Linear acceleration across 3 axes") { AccelerometerSample() },
+                            ObserverSample("Gyroscope", "Rotation rate across 3 axes") { GyroscopeSample() },
+                            ObserverSample("Step Counter", "Step count measurement") { StepCounterSample() }
+                        )
+                    ),
+                    PluginCatalog(
+                        id = PluginId.HEALTH,
+                        title = "Health Plugin",
+                        description = "Measures heart rate via sensors or Camera PPG.",
+                        getOrCreatePlugin = {
+                            KSensor.get<com.ksensor.plugins.sensors.health.HealthPlugin>(PluginId.HEALTH)
+                                ?: createHealthPlugin().also { KSensor.register(it) }
+                        },
+                        observers = listOf(
+                            ObserverSample("Heart Rate", "Monitor heart rate and camera PPG state") { HealthSample() }
+                        )
+                    ),
+                    PluginCatalog(
+                        id = PluginId.ENVIRONMENT,
+                        title = "Environment Plugin",
+                        description = "Measures noise, barometer, light, and proximity.",
+                        getOrCreatePlugin = {
+                            KSensor.get<com.ksensor.plugins.sensors.environment.EnvironmentPlugin>(PluginId.ENVIRONMENT)
+                                ?: createEnvironmentPlugin().also { KSensor.register(it) }
+                        },
+                        observers = listOf(
+                            ObserverSample("Noise Meter", "Measures ambient sound levels in dB") { NoiseSample() },
+                            ObserverSample("Barometer", "Atmospheric pressure measurement") { BarometerSample() },
+                            ObserverSample("Light Sensor", "Illuminance in lux") { LightSample() },
+                            ObserverSample("Proximity", "Object distance and nearness") { ProximitySample() }
+                        )
+                    ),
+                    PluginCatalog(
+                        id = PluginId.BLUETOOTH,
+                        title = "Bluetooth Plugin",
+                        description = "Monitors connected, discovered, and audio Bluetooth devices.",
+                        getOrCreatePlugin = {
+                            KSensor.get<com.ksensor.plugins.states.bluetooth.BluetoothPlugin>(PluginId.BLUETOOTH)
+                                ?: createBluetoothPlugin().also { KSensor.register(it) }
+                        },
+                        observers = listOf(
+                            ObserverSample("Bluetooth Status", "Observe connected and discovered Bluetooth devices") { BluetoothSample() },
+                            ObserverSample("Audio Devices", "Connected Bluetooth audio devices") { AudioDevicesSample() }
+                        )
+                    ),
+                    PluginCatalog(
+                        id = PluginId.SYSTEM,
+                        title = "System Plugin",
+                        description = "Monitors brightness, storage, resources, battery, volume, locale, screen state, lock, and power save.",
+                        getOrCreatePlugin = {
+                            KSensor.get<com.ksensor.plugins.states.system.SystemPlugin>(PluginId.SYSTEM)
+                                ?: createSystemPlugin().also { KSensor.register(it) }
+                        },
+                        observers = listOf(
+                            ObserverSample("Brightness", "Screen brightness status and level") { BrightnessSample() },
+                            ObserverSample("Storage", "Device storage capacity and usage") { StorageSample() },
+                            ObserverSample("Resources", "CPU usage, load average, and memory status") { ResourcesSample() },
+                            ObserverSample("Battery", "Battery level, charging state, health, and temp") { BatterySample() },
+                            ObserverSample("Volume", "Audio volume levels") { VolumeSample() },
+                            ObserverSample("Locale", "System locale and language settings") { LocaleSample() },
+                            ObserverSample("Screen State", "Screen on/off status") { ScreenStateSample() },
+                            ObserverSample("Device Lock", "Device lock status") { LockSample() },
+                            ObserverSample("Power Save", "Power save mode status") { PowerSaveSample() }
+                        )
+                    ),
+                    PluginCatalog(
+                        id = PluginId.NETWORK,
+                        title = "Network Plugin",
+                        description = "Monitors connectivity, active network, and call state.",
+                        getOrCreatePlugin = {
+                            KSensor.get<com.ksensor.plugins.states.network.NetworkPlugin>(PluginId.NETWORK)
+                                ?: createNetworkPlugin().also { KSensor.register(it) }
+                        },
+                        observers = listOf(
+                            ObserverSample("Call State", "Monitor telephony call state and activity") { CallStateSample() },
+                            ObserverSample("Connectivity", "Network connectivity status") { ConnectivitySample() },
+                            ObserverSample("Active Network", "Active network type and details") { ActiveNetworkSample() }
+                        )
+                    ),
+                    PluginCatalog(
+                        id = PluginId.INTERACTION,
+                        title = "Interaction Plugin",
+                        description = "Monitors touch gestures and scroll position.",
+                        getOrCreatePlugin = {
+                            KSensor.get<com.ksensor.plugins.sensors.interaction.InteractionPlugin>(PluginId.INTERACTION)
+                                ?: createInteractionPlugin().also { KSensor.register(it) }
+                        },
+                        observers = listOf(
+                            ObserverSample("Scroll Monitor", "Observe user scroll position and activity") { ScrollSample() },
+                            ObserverSample("Touch Gestures", "Touch gesture events") { TouchGesturesSample() }
+                        )
+                    ),
+                    PluginCatalog(
+                        id = PluginId.LIFECYCLE,
+                        title = "Lifecycle Plugin",
+                        description = "Monitors application visibility and lifecycle state.",
+                        getOrCreatePlugin = {
+                            KSensor.get<com.ksensor.plugins.states.lifecycle.LifecyclePlugin>(PluginId.LIFECYCLE)
+                                ?: createLifecyclePlugin().also { KSensor.register(it) }
+                        },
+                        observers = listOf(
+                            ObserverSample("App Visibility", "Observe foreground/background app visibility") { AppVisibilitySample() }
+                        )
+                    )
+                )
             }
 
-            val remainingPermissions = permissions.filter { it !in grantedPermissions }
+            when (val screen = currentScreen) {
+                is Screen.Catalog -> {
+                    CatalogScreen(catalogItems) { item ->
+                        currentScreen = Screen.PluginDetail(item)
+                    }
+                }
+                is Screen.PluginDetail -> {
+                    PluginDetailScreen(screen.pluginCatalog) {
+                        currentScreen = Screen.Catalog
+                    }
+                }
+            }
+        }
+    }
+}
 
+@Composable
+fun CatalogScreen(items: List<PluginCatalog>, onSelectPlugin: (PluginCatalog) -> Unit) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("KSensor Plugin Catalog") }
+            )
+        }
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item {
+                Text(
+                    "Select a Plugin to test its sensors and state observers:",
+                    style = MaterialTheme.typography.subtitle1,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+            items(items) { catalogItem ->
+                Card(
+                    elevation = 4.dp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSelectPlugin(catalogItem) }
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(catalogItem.title, style = MaterialTheme.typography.h6)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(catalogItem.description, style = MaterialTheme.typography.body2)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            "Observers: ${catalogItem.observers.joinToString { it.name }}",
+                            style = MaterialTheme.typography.caption,
+                            color = MaterialTheme.colors.primary
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PluginDetailScreen(pluginCatalog: PluginCatalog, onBack: () -> Unit) {
+    val plugin = remember(pluginCatalog) { pluginCatalog.getOrCreatePlugin() }
+    val requiredPermissions = plugin.requiredPermissions
+
+    var grantedPermissions by remember(pluginCatalog) {
+        mutableStateOf(requiredPermissions.filter { KSensor.permissionHandler.hasPermission(it) }.toSet())
+    }
+
+    val remainingPermissions = requiredPermissions.filter { it !in grantedPermissions }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(pluginCatalog.title) },
+                navigationIcon = {
+                    TextButton(onClick = onBack) {
+                        Text("Back", color = MaterialTheme.colors.onPrimary)
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             if (remainingPermissions.isNotEmpty()) {
                 val nextPermission = remainingPermissions.first()
                 Column(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().padding(24.dp),
                     verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("$nextPermission Permission Required")
-                    Button(onClick = { /* Trigger permission request handled by AskPermission */ }) {
+                    Text(
+                        text = "Permission Required",
+                        style = MaterialTheme.typography.h5
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "This plugin requires $nextPermission permission to function.",
+                        style = MaterialTheme.typography.body1,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                    Button(onClick = { /* Handled by AskPermission */ }) {
                         Text("Grant Permission")
                     }
 
@@ -71,400 +308,44 @@ fun App() {
                     }
                 }
             } else {
-//                BluetoothSample()
-//                OrientationSampleUsingEffect()
-//                OrientationSampleUsingState()
-//                MotionSampleUsingState()
-//                LocationSample()
-//                StorageSample()
-//                ResourcesSample()
-//                HeadingSample()
-//                BrightnessSample()
-//                HealthSample()
-//                NoiseSample()
-//                CallStateSample()
-                  ScrollSample()
-            }
-        }
-    }
-}
+                // Permissions granted - show observers selection/testing UI
+                var selectedObserverIndex by remember { mutableStateOf(0) }
 
-@Composable
-fun NoiseSample() {
-    val plugin = remember {
-        KSensor.get<EnvironmentPlugin>(PluginId.ENVIRONMENT)
-            ?: createEnvironmentPlugin().also { KSensor.register(it) }
-    }
+                Column(modifier = Modifier.fillMaxSize()) {
+                    if (pluginCatalog.observers.size > 1) {
+                        ScrollableTabRow(
+                            selectedTabIndex = selectedObserverIndex,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            pluginCatalog.observers.forEachIndexed { index, observer ->
+                                Tab(
+                                    selected = selectedObserverIndex == index,
+                                    onClick = { selectedObserverIndex = index },
+                                    text = { Text(observer.name) }
+                                )
+                            }
+                        }
+                    } else if (pluginCatalog.observers.isNotEmpty()) {
+                        Surface(
+                            elevation = 2.dp,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "Active Observer: ${pluginCatalog.observers[0].name}",
+                                style = MaterialTheme.typography.subtitle1,
+                                modifier = Modifier.padding(16.dp)
+                            )
+                        }
+                    }
 
-    val noiseResponse by plugin.noise().collectAsState(null)
-    val noise = noiseResponse?.data
-
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Noise Plugin Sample", style = MaterialTheme.typography.h5)
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (noise != null) {
-            Text("Noise Level: ${noise.dB.toDouble().toTwoDecimalString()} dB")
-            Text("Loud? ${noise.isLoud}")
-        } else {
-            Text("Loading noise data...")
-        }
-    }
-}
-
-@Composable
-fun BrightnessSample() {
-    val plugin = remember {
-        KSensor.get<SystemPlugin>(PluginId.SYSTEM)
-            ?: createSystemPlugin().also { KSensor.register(it) }
-    }
-
-    val brightnessResponse by plugin.brightness().observe().collectAsState(null)
-    val brightness = brightnessResponse?.data
-
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Brightness Status Sample", style = MaterialTheme.typography.h5)
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (brightness != null) {
-            Text("Screen Brightness: ${brightness.screenBrightness}%")
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            LinearProgressIndicator(
-                progress = brightness.screenBrightness.toFloat() / 100f,
-                modifier = Modifier.fillMaxWidth().height(8.dp)
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("Try changing your system brightness to see it update.", style = MaterialTheme.typography.caption)
-        } else {
-            Text("Loading brightness data...")
-        }
-    }
-}
-
-@Composable
-fun HealthSample() {
-    val plugin = remember {
-        KSensor.get<HealthPlugin>(PluginId.HEALTH)
-            ?: createHealthPlugin().also { KSensor.register(it) }
-    }
-
-    val heartRateResponse by plugin.heartRate().collectAsState(null)
-    
-    var lastValidHeartRate by remember { mutableStateOf<SensorData.HeartRate?>(null) }
-    
-    LaunchedEffect(heartRateResponse) {
-        val data = heartRateResponse?.data
-        if (data != null && (data.heartRate > 0 || lastValidHeartRate == null)) {
-            lastValidHeartRate = data
-        }
-    }
-
-    val heartRate = lastValidHeartRate
-
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Health Plugin Sample", style = MaterialTheme.typography.h5)
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (heartRate != null) {
-            if (heartRate.source == SensorData.HeartRateSource.CAMERA_PPG) {
-                if (heartRate.heartRate == 0f) {
-                    val status = "Place your finger over the camera lens and flash"
-                    Text("Camera PPG Active", style = MaterialTheme.typography.h6, color = MaterialTheme.colors.primary)
-                    Text(status, style = MaterialTheme.typography.body1)
-                } else {
-                    val color = if (heartRate.confidence > 0.6f) MaterialTheme.colors.primary else MaterialTheme.colors.secondary
-                    Text("Heart Rate: ${heartRate.heartRate.toInt()} BPM", style = MaterialTheme.typography.h4)
-                    Text("Source: Camera PPG (Confidence: ${(heartRate.confidence * 100).toInt()}%)", 
-                        style = MaterialTheme.typography.caption,
-                        color = color
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text("Keep your finger on the camera.", style = MaterialTheme.typography.caption, color = MaterialTheme.colors.secondary)
+                    Box(modifier = Modifier.fillMaxSize().weight(1f)) {
+                        if (pluginCatalog.observers.isNotEmpty()) {
+                            pluginCatalog.observers[selectedObserverIndex].content()
+                        }
+                    }
                 }
-            } else {
-                Text("Heart Rate: ${heartRate.heartRate.toInt()} BPM", style = MaterialTheme.typography.h4)
-                Text("Source: Hardware Sensor", style = MaterialTheme.typography.caption)
-            }
-        } else {
-            Text("Waiting for heart rate data...")
-            Text("(Make sure you have a heart rate sensor and permission is granted)")
-        }
-    }
-}
-
-@Composable
-fun BluetoothSample() {
-    val bluetoothPlugin = remember {
-        KSensor.get<BluetoothPlugin>(PluginId.BLUETOOTH)
-            ?: createBluetoothPlugin().also { KSensor.register(it) }
-    }
-
-    val connectionsResponse by (bluetoothPlugin.connections().observe()).collectAsState(null)
-    val discoveriesResponse by (bluetoothPlugin.discoveries().observe()).collectAsState(null)
-
-    val connections = connectionsResponse?.data
-    val discoveries = discoveriesResponse?.data
-
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Bluetooth Plugin Sample", style = MaterialTheme.typography.h5)
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text("Connected Devices:", style = MaterialTheme.typography.h6)
-        LazyColumn(modifier = Modifier.height(100.dp)) {
-            items(connections?.connectedDevices ?: emptyList()) { device ->
-                Text("${device.name} (${device.id})")
             }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text("Discovered Devices:", style = MaterialTheme.typography.h6)
-        LazyColumn(modifier = Modifier.weight(1f)) {
-            items(discoveries?.discoveredDevices ?: emptyList()) { device ->
-                Text("${device.name} (${device.id})")
-            }
-        }
-    }
-}
-
-@Composable
-fun OrientationSampleUsingEffect() {
-    val plugin = remember {
-        KSensor.get<PositioningPlugin>(PluginId.POSITIONING)
-            ?: createPositioningPlugin().also { KSensor.register(it) }
-    }
-
-    // Use effect
-    LaunchedEffect(plugin) {
-        plugin.orientation().collect {
-            println("OrientationData in effect: ${it.data}")
-        }
-    }
-}
-
-@Composable
-fun OrientationSampleUsingState() {
-    val plugin = remember {
-        KSensor.get<PositioningPlugin>(PluginId.POSITIONING)
-            ?: createPositioningPlugin().also { KSensor.register(it) }
-    }
-
-    // Use state
-    val orientation by plugin.orientation().collectAsState(null)
-
-    println("OrientationData as state: ${orientation?.data}")
-}
-
-@Composable
-fun MotionSampleUsingState() {
-    val plugin = remember {
-        KSensor.get<MotionPlugin>(PluginId.MOTION)
-            ?: createMotionPlugin().also { KSensor.register(it) }
-    }
-
-    // Use state
-    val motion by plugin.motionDetector().collectAsState(null)
-
-    println("MotionDetectionData as state: ${motion?.data}")
-}
-
-@Composable
-fun LocationSample() {
-    val plugin = remember {
-        KSensor.get<PositioningPlugin>(PluginId.POSITIONING)
-            ?: createPositioningPlugin().also { KSensor.register(it) }
-    }
-
-    // Use state
-    val location by plugin.location().collectAsState(null)
-
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Location Plugin Sample", style = MaterialTheme.typography.h5)
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text("Current Location:", style = MaterialTheme.typography.h6)
-        Text("Latitude: ${location?.data?.latitude ?: "N/A"}")
-        Text("Longitude: ${location?.data?.longitude ?: "N/A"}")
-        Text("Altitude: ${location?.data?.altitude ?: "N/A"}")
-    }
-}
-
-@Composable
-fun StorageSample() {
-    val plugin = remember {
-        KSensor.get<SystemPlugin>(PluginId.SYSTEM)
-            ?: createSystemPlugin().also { KSensor.register(it) }
-    }
-
-    val storageResponse by plugin.storage(interval = 2.seconds).observe().collectAsState(null)
-    val storage = storageResponse?.data
-
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Storage Status Sample", style = MaterialTheme.typography.h5)
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (storage != null) {
-            val totalGB = storage.totalBytes / (1024.0 * 1024.0 * 1024.0)
-            val usedGB = storage.usedBytes / (1024.0 * 1024.0 * 1024.0)
-            val freeGB = storage.freeBytes / (1024.0 * 1024.0 * 1024.0)
-
-            Text("Total Storage: ${totalGB.toTwoDecimalString()} GB")
-            Text("Used Storage: ${usedGB.toTwoDecimalString()} GB")
-            Text("Free Storage: ${freeGB.toTwoDecimalString()} GB")
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            LinearProgressIndicator(
-                progress = if (storage.totalBytes > 0) storage.usedBytes.toFloat() / storage.totalBytes else 0f,
-                modifier = Modifier.fillMaxWidth().height(8.dp)
-            )
-        } else {
-            Text("Loading storage data...")
-        }
-    }
-}
-
-@Composable
-fun ResourcesSample() {
-    val plugin = remember {
-        KSensor.get<SystemPlugin>(PluginId.SYSTEM)
-            ?: createSystemPlugin().also { KSensor.register(it) }
-    }
-
-    val resourcesResponse by plugin.resources(interval = 1.seconds).observe().collectAsState(null)
-    val resources = resourcesResponse?.data
-
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Device Resources Sample", style = MaterialTheme.typography.h5)
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (resources != null) {
-            Text("CPU Usage (Total): ${resources.cpuUsagePercent.toTwoDecimalString()}%")
-            Text("App CPU Usage: ${resources.appCpuUsagePercent.toTwoDecimalString()}%")
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Text("System Load Average:", style = MaterialTheme.typography.h6)
-            resources.systemLoadAverage.forEachIndexed { index, load ->
-                val time = when(index) {
-                    0 -> "1 min"
-                    1 -> "5 min"
-                    else -> "15 min"
-                }
-                Text("  • $time: ${load.toTwoDecimalString()}")
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text("Memory Status:", style = MaterialTheme.typography.h6)
-            val totalMB = resources.memoryUsage.totalBytes / (1024.0 * 1024.0)
-            val usedMB = resources.memoryUsage.usedBytes / (1024.0 * 1024.0)
-            val freeMB = resources.memoryUsage.freeBytes / (1024.0 * 1024.0)
-
-            Text("  • Total: ${totalMB.toTwoDecimalString()} MB")
-            Text("  • Used: ${usedMB.toTwoDecimalString()} MB")
-            Text("  • Free: ${freeMB.toTwoDecimalString()} MB")
-            Text("  • Pressure: ${resources.memoryPressure.name}")
-
-            Spacer(modifier = Modifier.height(8.dp))
-            LinearProgressIndicator(
-                progress = if (resources.memoryUsage.totalBytes > 0) usedMB.toFloat() / totalMB.toFloat() else 0f,
-                modifier = Modifier.fillMaxWidth().height(8.dp)
-            )
-        } else {
-            Text("Loading resources data...")
-        }
-    }
-}
-
-@Composable
-fun HeadingSample() {
-    val plugin = remember {
-        KSensor.get<PositioningPlugin>(PluginId.POSITIONING)
-            ?: createPositioningPlugin().also { KSensor.register(it) }
-    }
-
-    val headingResponse by plugin.heading().collectAsState(null)
-    val heading = headingResponse?.data
-
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Heading Plugin Sample", style = MaterialTheme.typography.h5)
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (heading != null) {
-            Text("Magnetic Heading: ${heading.magneticHeading.toTwoDecimalString()}°")
-            Text("True Heading: ${heading.trueHeading.toTwoDecimalString()}°")
-            Text("Device Heading: ${heading.deviceHeading.toTwoDecimalString()}°")
-            Text("Course Over Ground: ${heading.courseOverGround.toTwoDecimalString()}°")
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Basic visualization: showing the values is usually enough for a sample, 
-            // but we can add more if needed.
-        } else {
-            Text("Waiting for heading data...")
-        }
-    }
-}
-
-private fun Double.toTwoDecimalString(): String {
-    val integerPart = this.toLong()
-    val decimalPart = ((this - integerPart) * 100).toLong()
-    return "$integerPart.${decimalPart.toString().padStart(2, '0')}"
-}
-
-@Composable
-fun CallStateSample() {
-    val plugin = remember {
-        KSensor.get<NetworkPlugin>(PluginId.NETWORK)
-            ?: createNetworkPlugin().also { KSensor.register(it) }
-    }
-
-    val callStateResponse by plugin.callState().observe().collectAsState(null)
-    val callStateStatus = callStateResponse?.data
-
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Call State Sample (via NetworkPlugin)", style = MaterialTheme.typography.h5)
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (callStateStatus != null) {
-            Text("State: ${callStateStatus.state}", style = MaterialTheme.typography.h6)
-            Text("Is In Call: ${callStateStatus.isInCall}")
-        } else {
-            Text("Loading call state data...")
-        }
-    }
-}
-
-@Composable
-fun ScrollSample() {
-    val plugin = remember {
-        KSensor.get<InteractionPlugin>(PluginId.INTERACTION)
-            ?: createInteractionPlugin().also { KSensor.register(it) }
-    }
-
-    val scrollResponse by plugin.scroll().observe().collectAsState(null)
-    val scroll = scrollResponse?.data
-
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Scroll Status Sample (via InteractionPlugin)", style = MaterialTheme.typography.h5)
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (scroll != null) {
-            Text("Horizontal Position: ${scroll.horizontalPosition}")
-            Text("Vertical Position: ${scroll.verticalPosition}")
-            Text("Is Scrolling: ${scroll.isScrolling}")
-        } else {
-            Text("Scroll the content below...")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Scroll status is observed from native platform scroll containers.
-        NativeScrollableContent(modifier = Modifier.fillMaxSize())
     }
 }
 
