@@ -15,9 +15,20 @@ All data emitted by plugins is wrapped in a `KSensorResponse<T>` which includes:
 - `platform`: The platform type (Android or iOS).
 - `timestamp`: The system time when the data was collected.
 
-## Permissions Handling
+> [!NOTE]
+> **Permissions**: Plugins declare structured permission metadata. You can auto-generate `AndroidManifest.xml` and iOS `Info.plist` permission snippets using `KSensor.permissionManifest()` and `KSensor.iosInfoPlistEntries()`. For complete details and examples, see [Permissions Handling](#permissions-handling).
 
-Some plugins require system permissions to function. Each plugin exposes a `requiredPermissions` list indicating what it needs. KSensor provides a `PermissionHandler` interface in the Core module to help check and request these permissions across platforms.
+---
+
+## Core Module
+
+The foundation of the library. It is required for all plugins.
+
+Dependency:
+
+```kotlin
+implementation("io.github.shadadman:ksensor-core:version")
+```
 
 ### Core Module API
 ```kotlin
@@ -48,6 +59,31 @@ object KSensor {
      * Used only in Application class on Android and to achieve "start on boot" behavior on iOS.
      */
     fun start()
+
+    /**
+     * Generates AndroidManifest.xml uses-permission tags snippet for registered or specified plugins.
+     */
+    fun permissionManifest(
+        plugins: List<KSensorPlugin> = getRegisteredPlugins(),
+        includeOptional: Boolean = true,
+        includeComments: Boolean = true
+    ): String
+
+    /**
+     * Generates iOS Info.plist usage description entries snippet for registered or specified plugins.
+     */
+    fun iosInfoPlistEntries(
+        plugins: List<KSensorPlugin> = getRegisteredPlugins(),
+        includeOptional: Boolean = true,
+        includeComments: Boolean = true
+    ): String
+
+    /**
+     * Debug utility that prints permission manifest entries for Android and iOS to stdout/console.
+     */
+    fun printPermissionManifests(
+        plugins: List<KSensorPlugin> = getRegisteredPlugins()
+    )
 }
 ```
 
@@ -55,22 +91,6 @@ object KSensor {
 > **Android**: To use "Start on Boot", you must register your plugins and call `KSensor.start()` in your `Application` class. While the library handles the system boot broadcast automatically, calling `start()` in your application class ensures that observations are resumed whenever the app process is created.
 >
 > **iOS**: iOS does not allow arbitrary code execution on boot. To achieve "Start on Boot" behavior, you must call `KSensor.start()` in your `AppDelegate`'s `didFinishLaunchingWithOptions`. If you have background modes enabled (like Location or HealthKit), the system will relaunch your app into the background after a reboot, and calling `KSensor.start()` will resume observations.
-
-You must ensure that the necessary permissions are granted before starting sensor observations. Each plugin section below lists its required permissions.
-
-For Android, you must add the permissions to the `Manifest` file manually.
-
----
-
-## Core Module
-
-The foundation of the library. It is required for all plugins.
-
-Dependency:
-
-```kotlin
-implementation("io.github.shadadman:ksensor-core:version")
-```
 
 ---
 
@@ -355,6 +375,74 @@ Example to unregister a plugin:
 KSensor.unregister(PluginId.POSITIONING)
 ```
 
+---
+
+## Permissions Handling
+
+Some plugins require system permissions to function. Each plugin exposes a `requiredPermissions` list indicating what it needs, as well as `permissionMetadata` providing structured platform-level details (such as `minSdkVersion`/`maxSdkVersion` for Android and `Info.plist` usage description keys for iOS).
+
+### Auto-Generated Permission Manifest Templates
+
+Instead of manually writing `AndroidManifest.xml` tags and iOS `Info.plist` usage descriptions, KSensor provides pure helper functions in the Core module to generate template-ready permission entries for all registered plugins (or a specified list of plugins).
+
+```kotlin
+// Generate AndroidManifest.xml uses-permission tags
+val androidManifestSnippet: String = KSensor.permissionManifest(
+    includeOptional = true,
+    includeComments = true
+)
+
+// Generate iOS Info.plist usage description entries
+val iosInfoPlistSnippet: String = KSensor.iosInfoPlistEntries(
+    includeOptional = true,
+    includeComments = true
+)
+
+// Debug utility to print permission entries for all registered plugins to console
+KSensor.printPermissionManifests()
+```
+
+#### Example Generated Output & Target File Paths
+
+##### Android
+**File Path:** `composeApp/src/androidMain/AndroidManifest.xml` (or `app/src/main/AndroidManifest.xml`)  
+**Placement:** Inside the `<manifest>` root tag, before or outside the `<application>` tag.
+
+```xml
+<!-- AndroidManifest.xml permissions for KSensor plugins -->
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+  <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:minSdkVersion="31" android:usesPermissionFlags="neverForLocation" />
+  <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" android:minSdkVersion="31" />
+  <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+  <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+  <uses-permission android:name="android.permission.RECORD_AUDIO" />
+```
+
+##### iOS
+**File Path:** `iosApp/iosApp/Info.plist` (or `iosApp/Info.plist`)  
+**Placement:** Inside the top-level `<dict>` tag.
+
+```xml
+<!-- Info.plist permission entries for KSensor plugins -->
+  <key>NSLocationWhenInUseUsageDescription</key>
+  <string>This app requires access to location services to track positioning data.</string>
+  <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+  <string>This app requires background location access to track positioning data.</string>
+  <key>NSBluetoothAlwaysUsageDescription</key>
+  <string>This app requires Bluetooth access to observe Bluetooth state and connected devices.</string>
+  <key>NSMicrophoneUsageDescription</key>
+  <string>This app requires Microphone access to measure ambient sound levels.</string>
+```
+
+### Permission Metadata & Platform Restrictions
+
+Each permission requirement is represented as a structured `PermissionMetadata` instance with:
+- `platform`: `TargetPlatform` (`ANDROID`, `IOS`, or `COMMON`).
+- `permissionName`: Platform identifier (e.g., `android.permission.BLUETOOTH_SCAN` or `NSLocationWhenInUseUsageDescription`).
+- `usageDescriptionKey` & `usageDescriptionDefault`: Keys and default descriptions for iOS `Info.plist` or rationale dialogs.
+- `isRequired`: Flag indicating whether the permission is strictly required or optional for the plugin.
+- `minSdkVersion` & `maxSdkVersion`: Platform SDK version limits (e.g., Android API 31+ for Bluetooth scanning).
 
 ---
 

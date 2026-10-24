@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.ksensor.core.KSensor
 import com.ksensor.core.KSensorPlugin
 import com.ksensor.core.PermissionStatus
+import com.ksensor.core.TargetPlatform
 import com.ksensor.core.model.PluginId
 
 import com.ksensor.sample.positioning.*
@@ -41,6 +42,7 @@ import com.ksensor.plugins.states.lifecycle.createLifecyclePlugin
 sealed class Screen {
     object Catalog : Screen()
     data class PluginDetail(val pluginCatalog: PluginCatalog) : Screen()
+    object ManifestGenerator : Screen()
 }
 
 enum class CatalogCategory { SENSORS, STATES }
@@ -270,12 +272,19 @@ fun App() {
 
             when (val screen = currentScreen) {
                 is Screen.Catalog -> {
-                    CatalogScreen(catalogItems) { item ->
-                        currentScreen = Screen.PluginDetail(item)
-                    }
+                    CatalogScreen(
+                        items = catalogItems,
+                        onSelectPlugin = { item -> currentScreen = Screen.PluginDetail(item) },
+                        onOpenManifestGenerator = { currentScreen = Screen.ManifestGenerator }
+                    )
                 }
                 is Screen.PluginDetail -> {
                     PluginDetailScreen(screen.pluginCatalog) {
+                        currentScreen = Screen.Catalog
+                    }
+                }
+                is Screen.ManifestGenerator -> {
+                    ManifestGeneratorScreen(catalogItems) {
                         currentScreen = Screen.Catalog
                     }
                 }
@@ -285,7 +294,11 @@ fun App() {
 }
 
 @Composable
-fun CatalogScreen(items: List<PluginCatalog>, onSelectPlugin: (PluginCatalog) -> Unit) {
+fun CatalogScreen(
+    items: List<PluginCatalog>,
+    onSelectPlugin: (PluginCatalog) -> Unit,
+    onOpenManifestGenerator: () -> Unit
+) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<CatalogCategory?>(null) }
     var selectedCapability by remember { mutableStateOf<String?>(null) }
@@ -306,7 +319,12 @@ fun CatalogScreen(items: List<PluginCatalog>, onSelectPlugin: (PluginCatalog) ->
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("KSensor Plugin Catalog") }
+                title = { Text("KSensor Plugin Catalog") },
+                actions = {
+                    TextButton(onClick = onOpenManifestGenerator) {
+                        Text("Manifests", color = MaterialTheme.colors.onPrimary)
+                    }
+                }
             )
         }
     ) { padding ->
@@ -525,6 +543,39 @@ fun PluginDetailScreen(pluginCatalog: PluginCatalog, onBack: () -> Unit) {
                             item {
                                 Card(elevation = 2.dp, shape = RoundedCornerShape(12.dp)) {
                                     Column(modifier = Modifier.padding(16.dp)) {
+                                        Text("Generated Permission Manifests", style = MaterialTheme.typography.h6, color = MaterialTheme.colors.primary)
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text("Android (AndroidManifest.xml):", style = MaterialTheme.typography.subtitle2)
+                                        Surface(
+                                            shape = RoundedCornerShape(8.dp),
+                                            color = MaterialTheme.colors.onSurface.copy(alpha = 0.05f),
+                                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                                        ) {
+                                            Text(
+                                                text = KSensor.permissionManifest(listOf(plugin)),
+                                                style = MaterialTheme.typography.caption,
+                                                modifier = Modifier.padding(8.dp)
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text("iOS (Info.plist):", style = MaterialTheme.typography.subtitle2)
+                                        Surface(
+                                            shape = RoundedCornerShape(8.dp),
+                                            color = MaterialTheme.colors.onSurface.copy(alpha = 0.05f),
+                                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                                        ) {
+                                            Text(
+                                                text = KSensor.iosInfoPlistEntries(listOf(plugin)),
+                                                style = MaterialTheme.typography.caption,
+                                                modifier = Modifier.padding(8.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            item {
+                                Card(elevation = 2.dp, shape = RoundedCornerShape(12.dp)) {
+                                    Column(modifier = Modifier.padding(16.dp)) {
                                         Text("Data Type Examples", style = MaterialTheme.typography.h6, color = MaterialTheme.colors.primary)
                                         Spacer(modifier = Modifier.height(8.dp))
                                         pluginCatalog.dataTypeExamples.forEach { example ->
@@ -579,6 +630,156 @@ fun PluginDetailScreen(pluginCatalog: PluginCatalog, onBack: () -> Unit) {
                                 if (pluginCatalog.observers.isNotEmpty()) {
                                     pluginCatalog.observers[selectedObserverIndex].content()
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ManifestGeneratorScreen(
+    catalogItems: List<PluginCatalog>,
+    onBack: () -> Unit
+) {
+    var selectedPlatform by remember { mutableStateOf(TargetPlatform.ANDROID) }
+    var includeOptional by remember { mutableStateOf(true) }
+    var includeComments by remember { mutableStateOf(true) }
+    var selectedPluginId by remember { mutableStateOf<PluginId?>(null) }
+
+    val allPlugins = remember(catalogItems) {
+        catalogItems.map { it.getOrCreatePlugin() }
+    }
+
+    val activePlugins = remember(allPlugins, selectedPluginId) {
+        if (selectedPluginId == null) {
+            allPlugins
+        } else {
+            allPlugins.filter { it.id == selectedPluginId }
+        }
+    }
+
+    val generatedSnippet = remember(activePlugins, selectedPlatform, includeOptional, includeComments) {
+        when (selectedPlatform) {
+            TargetPlatform.ANDROID -> KSensor.permissionManifest(
+                plugins = activePlugins,
+                includeOptional = includeOptional,
+                includeComments = includeComments
+            )
+            TargetPlatform.IOS -> KSensor.iosInfoPlistEntries(
+                plugins = activePlugins,
+                includeOptional = includeOptional,
+                includeComments = includeComments
+            )
+            TargetPlatform.COMMON -> "Select Android or iOS platform to generate manifest entries."
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Manifest Generator") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Text("←", style = MaterialTheme.typography.h6)
+                    }
+                },
+                actions = {
+                    TextButton(onClick = { KSensor.printPermissionManifests(activePlugins) }) {
+                        Text("Log", color = MaterialTheme.colors.onPrimary)
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Platform Toggle Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    selected = selectedPlatform == TargetPlatform.ANDROID,
+                    onClick = { selectedPlatform = TargetPlatform.ANDROID },
+                    label = { Text("AndroidManifest.xml") }
+                )
+                FilterChip(
+                    selected = selectedPlatform == TargetPlatform.IOS,
+                    onClick = { selectedPlatform = TargetPlatform.IOS },
+                    label = { Text("iOS Info.plist") }
+                )
+            }
+
+            // Options Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(
+                        checked = includeOptional,
+                        onCheckedChange = { includeOptional = it }
+                    )
+                    Text("Optional permissions", style = MaterialTheme.typography.body2)
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(
+                        checked = includeComments,
+                        onCheckedChange = { includeComments = it }
+                    )
+                    Text("Comments", style = MaterialTheme.typography.body2)
+                }
+            }
+
+            // Plugin Filter Row
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                item {
+                    FilterChip(
+                        selected = selectedPluginId == null,
+                        onClick = { selectedPluginId = null },
+                        label = { Text("All Plugins") }
+                    )
+                }
+                items(catalogItems) { item ->
+                    FilterChip(
+                        selected = selectedPluginId == item.id,
+                        onClick = { selectedPluginId = if (selectedPluginId == item.id) null else item.id },
+                        label = { Text(item.title.replace(" Plugin", "")) }
+                    )
+                }
+            }
+
+            // Output Card
+            Card(
+                elevation = 4.dp,
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth().weight(1f)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = if (selectedPlatform == TargetPlatform.ANDROID) "Generated AndroidManifest.xml:" else "Generated iOS Info.plist:",
+                        style = MaterialTheme.typography.subtitle1,
+                        color = MaterialTheme.colors.primary
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.05f),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        LazyColumn(modifier = Modifier.padding(12.dp)) {
+                            item {
+                                Text(
+                                    text = generatedSnippet,
+                                    style = MaterialTheme.typography.body2
+                                )
                             }
                         }
                     }
