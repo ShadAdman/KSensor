@@ -28,7 +28,7 @@ fun App() {
             Sidebar(onPageSelected = { currentPage = it })
             Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
             Box(modifier = Modifier.fillMaxHeight().weight(1f).padding(32.dp).verticalScroll(rememberScrollState())) {
-                Content(currentPage)
+                Content(currentPage, onPageSelected = { currentPage = it })
             }
         }
     }
@@ -36,6 +36,7 @@ fun App() {
 
 sealed class DocPage {
     object Intro : DocPage()
+    object Permissions : DocPage()
     data class Plugin(
         val category: String,
         val name: String,
@@ -64,6 +65,13 @@ fun Sidebar(onPageSelected: (DocPage) -> Unit) {
             color = Color(0xFF3F51B5),
             modifier = Modifier.clickable { onPageSelected(DocPage.Intro) }.padding(bottom = 24.dp)
         )
+
+        SidebarSection("Overview", Icons.Default.Home) {
+            SidebarItem("Introduction") { onPageSelected(DocPage.Intro) }
+            SidebarItem("Permissions Handling") { onPageSelected(DocPage.Permissions) }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
 
         SidebarSection("Sensors", Icons.Default.Sensors) {
             SidebarSubSection("Environment") {
@@ -160,15 +168,16 @@ fun SidebarItem(title: String, onClick: () -> Unit) {
 }
 
 @Composable
-fun Content(page: DocPage) {
+fun Content(page: DocPage, onPageSelected: (DocPage) -> Unit) {
     when (page) {
-        is DocPage.Intro -> IntroPage()
+        is DocPage.Intro -> IntroPage(onPageSelected)
+        is DocPage.Permissions -> PermissionsPage()
         is DocPage.Plugin -> PluginPage(page)
     }
 }
 
 @Composable
-fun IntroPage() {
+fun IntroPage(onPageSelected: (DocPage) -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
         Text("Welcome to KSensor", fontSize = 40.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
@@ -183,7 +192,37 @@ fun IntroPage() {
             fontSize = 18.sp,
             lineHeight = 28.sp
         )
-        
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Permissions Highlight Card
+        Card(
+            elevation = 0.dp,
+            backgroundColor = Color(0xFFE8EAF6),
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier.fillMaxWidth().clickable { onPageSelected(DocPage.Permissions) }
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Security, contentDescription = null, tint = Color(0xFF3F51B5), modifier = Modifier.size(24.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        "Auto-Generated Permission Manifest Templates",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = Color(0xFF1A237E)
+                    )
+                }
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    "KSensor plugins expose structured permission metadata. You can automatically generate AndroidManifest.xml and iOS Info.plist permission entries using KSensor.permissionManifest() and KSensor.iosInfoPlistEntries(). Click to open full Permissions Handling documentation →",
+                    fontSize = 14.sp,
+                    color = Color(0xFF283593),
+                    lineHeight = 20.sp
+                )
+            }
+        }
+
         Spacer(modifier = Modifier.height(32.dp))
         
         Text("Library Configuration", fontSize = 24.sp, fontWeight = FontWeight.Bold)
@@ -202,6 +241,106 @@ fun IntroPage() {
                 fontFamily = FontFamily.Monospace,
                 fontSize = 14.sp
             )
+        }
+    }
+}
+
+@Composable
+fun PermissionsPage() {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text("Overview > Permissions", color = Color.Gray, fontSize = 14.sp)
+        Text("Permissions Handling", fontSize = 36.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            "KSensor plugins declare system permissions required for sensor observation. Rather than manually researching and copying AndroidManifest.xml tags and iOS Info.plist keys, KSensor provides pure, side-effect free generator tools in the Core module to generate template-ready snippets.",
+            fontSize = 16.sp,
+            lineHeight = 24.sp
+        )
+
+        Spacer(modifier = Modifier.height(28.dp))
+
+        Text("Auto-Generating Manifest Snippets", fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            "Use KSensor.permissionManifest() and KSensor.iosInfoPlistEntries() to obtain formatted, deduplicated permission templates for all registered plugins or a custom list of plugins.",
+            fontSize = 15.sp,
+            lineHeight = 22.sp
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Card(
+            elevation = 0.dp,
+            backgroundColor = Color(0xFF2B2B2B),
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                "// 1. Generate AndroidManifest.xml <uses-permission> tags snippet\nval androidXml: String = KSensor.permissionManifest(\n    plugins = KSensor.getRegisteredPlugins(),\n    includeOptional = true,\n    includeComments = true\n)\n\n// 2. Generate iOS Info.plist usage description entries snippet\nval iosPlist: String = KSensor.iosInfoPlistEntries(\n    plugins = KSensor.getRegisteredPlugins(),\n    includeOptional = true,\n    includeComments = true\n)\n\n// 3. Debug utility: Print permission entries for both platforms to stdout\nKSensor.printPermissionManifests()",
+                color = Color(0xFFA9B7C6),
+                modifier = Modifier.padding(16.dp),
+                fontFamily = FontFamily.Monospace,
+                fontSize = 14.sp
+            )
+        }
+
+        Spacer(modifier = Modifier.height(28.dp))
+
+        Text("Example Generated Outputs & Target File Paths", fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                Text("Android Target Path:", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF3F51B5))
+                Text("composeApp/src/androidMain/AndroidManifest.xml (or app/src/main/AndroidManifest.xml)", fontSize = 12.sp, color = Color.DarkGray)
+                Text("Placement: Inside <manifest> root tag, before <application>", fontSize = 12.sp, color = Color.Gray)
+                Spacer(modifier = Modifier.height(6.dp))
+                Card(elevation = 0.dp, backgroundColor = Color(0xFFF0F0F0), modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        "<!-- AndroidManifest.xml permissions for KSensor plugins -->\n  <uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\" />\n  <uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\" />\n  <uses-permission android:name=\"android.permission.BLUETOOTH_SCAN\" android:minSdkVersion=\"31\" android:usesPermissionFlags=\"neverForLocation\" />\n  <uses-permission android:name=\"android.permission.BLUETOOTH_CONNECT\" android:minSdkVersion=\"31\" />\n  <uses-permission android:name=\"android.permission.RECORD_AUDIO\" />",
+                        modifier = Modifier.padding(12.dp),
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 12.sp
+                    )
+                }
+            }
+
+            Column(modifier = Modifier.weight(1f).padding(start = 8.dp)) {
+                Text("iOS Target Path:", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF3F51B5))
+                Text("iosApp/iosApp/Info.plist (or iosApp/Info.plist)", fontSize = 12.sp, color = Color.DarkGray)
+                Text("Placement: Inside top-level <dict> tag", fontSize = 12.sp, color = Color.Gray)
+                Spacer(modifier = Modifier.height(6.dp))
+                Card(elevation = 0.dp, backgroundColor = Color(0xFFF0F0F0), modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        "<!-- Info.plist permission entries for KSensor plugins -->\n  <key>NSLocationWhenInUseUsageDescription</key>\n  <string>This app requires access to location services to track positioning data.</string>\n  <key>NSBluetoothAlwaysUsageDescription</key>\n  <string>This app requires Bluetooth access to observe Bluetooth state and connected devices.</string>\n  <key>NSMicrophoneUsageDescription</key>\n  <string>This app requires Microphone access to measure ambient sound levels.</string>",
+                        modifier = Modifier.padding(12.dp),
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 12.sp
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(28.dp))
+
+        Text("PermissionMetadata Model & Platform Restrictions", fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            "Every plugin defines permission requirements through PermissionMetadata instances, providing rich platform-specific details:",
+            fontSize = 15.sp,
+            lineHeight = 22.sp
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Card(elevation = 0.dp, backgroundColor = Color(0xFFF5F5F5), modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text("• platform: TargetPlatform (ANDROID, IOS, or COMMON)", fontWeight = FontWeight.Medium, fontSize = 14.sp)
+                Text("• permissionName: String (e.g. android.permission.ACCESS_FINE_LOCATION or NSLocationWhenInUseUsageDescription)", fontWeight = FontWeight.Medium, fontSize = 14.sp)
+                Text("• usageDescriptionKey & usageDescriptionDefault: Strings for iOS Info.plist keys and rationale values", fontWeight = FontWeight.Medium, fontSize = 14.sp)
+                Text("• isRequired: Boolean flag indicating if permission is mandatory (true) or optional (false)", fontWeight = FontWeight.Medium, fontSize = 14.sp)
+                Text("• minSdkVersion & maxSdkVersion: Nullable Int API limits for Android platform restrictions (e.g., API 31+ for Bluetooth scanning)", fontWeight = FontWeight.Medium, fontSize = 14.sp)
+                Text("• extraAttributes: Map<String, String> of additional XML attributes (e.g., usesPermissionFlags=\"neverForLocation\")", fontWeight = FontWeight.Medium, fontSize = 14.sp)
+            }
         }
     }
 }

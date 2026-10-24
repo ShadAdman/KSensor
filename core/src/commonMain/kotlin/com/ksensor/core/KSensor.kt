@@ -72,6 +72,57 @@ object KSensor {
     }
 
     /**
+     * Retrieves all currently registered plugins.
+     */
+    fun getRegisteredPlugins(): List<KSensorPlugin> = registry.values.toList()
+
+    /**
+     * Generates AndroidManifest.xml permission snippet for the specified or registered plugins.
+     *
+     * @param plugins List of plugins to include (defaults to all currently registered plugins).
+     * @param includeOptional Whether to include permissions marked as optional (isRequired = false).
+     * @param includeComments Whether to include XML header comments.
+     */
+    fun permissionManifest(
+        plugins: List<KSensorPlugin> = getRegisteredPlugins(),
+        includeOptional: Boolean = true,
+        includeComments: Boolean = true
+    ): String = PermissionManifestGenerator.generateAndroidManifest(
+        metadataList = plugins.flatMap { it.permissionMetadata },
+        includeOptional = includeOptional,
+        includeComments = includeComments
+    )
+
+    /**
+     * Generates iOS Info.plist permission entries snippet for the specified or registered plugins.
+     *
+     * @param plugins List of plugins to include (defaults to all currently registered plugins).
+     * @param includeOptional Whether to include permissions marked as optional (isRequired = false).
+     * @param includeComments Whether to include XML header comments.
+     */
+    fun iosInfoPlistEntries(
+        plugins: List<KSensorPlugin> = getRegisteredPlugins(),
+        includeOptional: Boolean = true,
+        includeComments: Boolean = true
+    ): String = PermissionManifestGenerator.generateIosInfoPlist(
+        metadataList = plugins.flatMap { it.permissionMetadata },
+        includeOptional = includeOptional,
+        includeComments = includeComments
+    )
+
+    /**
+     * Debug utility that prints the exact AndroidManifest.xml and iOS Info.plist entries for registered plugins.
+     */
+    fun printPermissionManifests(
+        plugins: List<KSensorPlugin> = getRegisteredPlugins()
+    ) {
+        println("=== AndroidManifest.xml Permissions ===")
+        println(permissionManifest(plugins))
+        println("\n=== iOS Info.plist Permissions ===")
+        println(iosInfoPlistEntries(plugins))
+    }
+
+    /**
      * Checks if a plugin is registered.
      */
     fun hasPlugin(id: PluginId): Boolean = registry.containsKey(id)
