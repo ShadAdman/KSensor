@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.Flow
 interface KSensorPlugin {
     val id: PluginId
     val requiredPermissions: List<Permission>
+    val permissionMetadata: List<PermissionMetadata>
+        get() = requiredPermissions.flatMap { it.toMetadataList() }
 }
 
 /**
