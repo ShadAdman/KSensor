@@ -1,7 +1,5 @@
 @file:OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
 
-import com.vanniktech.maven.publish.KotlinMultiplatform
-
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidKotlinMultiplatformLibrary)
@@ -13,65 +11,26 @@ kotlin {
         namespace = "com.ksensor.plugins.sensors.interaction"
         compileSdk = 36
         minSdk = 24
-
-        withHostTestBuilder {
-        }
-
-        withDeviceTestBuilder {
-            sourceSetTreeName = "test"
-        }
     }
 
     val xcfName = "interactionKit"
 
-    iosX64 {
-        binaries.framework {
-            baseName = xcfName
-        }
-    }
-
-    iosArm64 {
-        binaries.framework {
-            baseName = xcfName
-        }
-    }
-
-    iosSimulatorArm64 {
-        binaries.framework {
-            baseName = xcfName
-        }
-    }
-
+    iosX64 { binaries.framework { baseName = xcfName } }
+    iosArm64 { binaries.framework { baseName = xcfName } }
+    iosSimulatorArm64 { binaries.framework { baseName = xcfName } }
     jvm()
-
-    wasmJs {
-        browser()
-    }
+    wasmJs { browser() }
 
     sourceSets {
-        commonTest {
-            dependencies {
-                implementation(libs.kotlinx.coroutines.test)
-            }
+        commonMain.dependencies {
+            api(projects.core)
+            api(project(":plugins:sensors:interaction:touch"))
+            api(project(":plugins:sensors:interaction:scroll"))
+            implementation(libs.kotlinx.coroutines.core)
         }
-        commonMain {
-            dependencies {
-                implementation(libs.kotlin.test)
-                implementation(projects.core)
-                implementation(libs.kotlinx.coroutines.core)
-            }
-        }
-        androidMain {
-            dependencies {
-                implementation(libs.androidx.core)
-            }
-        }
-        getByName("androidDeviceTest") {
-            dependencies {
-                implementation(libs.kotlin.test)
-                implementation(libs.androidx.test.junit)
-                implementation(libs.androidx.core)
-            }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
         }
     }
 }
