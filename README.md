@@ -8,7 +8,10 @@
 
 # KSensor
 
-KSensor is a Kotlin Multiplatform library for observing device sensors and system states. Each sensor or state is grouped into its own plugin, allowing you to include only the features you need. This prevents pulling in unnecessary code and permissions.
+> [!TIP]
+> **Ultra-Small App Footprint & Atomic Micro-Modules**: **KSensor supports granular, single-sensor micro-modules!** Instead of pulling in full domain bundles, you can depend **only** on the exact atomic sensor or state artifact you need (e.g. `ksensor-sensor-stepcounter`, `ksensor-state-system-battery`, `ksensor-sensor-accelerometer`). This **dramatically reduces your consumer app binary size**, **eliminates unused platform permissions**, and **prevents pulling in heavy transitive dependencies** (like Google Play Services or CameraX) when you don't need them!
+
+KSensor is a Kotlin Multiplatform library for observing device sensors and system states. Each sensor or state is available as an **atomic micro-module** or grouped into **domain-level convenience facades**, allowing you to include only the features you need. This prevents pulling in unnecessary code and permissions.
 
 All data emitted by plugins is wrapped in a `KSensorResponse<T>` which includes:
 - `data`: The actual sensor or state data.
@@ -102,21 +105,28 @@ These plugins provide access to hardware sensors for monitoring movement, enviro
 
 Provides access to hardware sensors for tracking movement.
 
-Dependency:
+Dependencies:
 ```kotlin
+// Option A: Domain Convenience Facade (Includes all motion sensors)
 implementation("io.github.shadadman:ksensor-sensors-motion:version")
+
+// Option B: Atomic Micro-Modules (Ultra-Small Footprint - Choose only what you need!)
+implementation("io.github.shadadman:ksensor-sensor-accelerometer:version")
+implementation("io.github.shadadman:ksensor-sensor-gyroscope:version")
+implementation("io.github.shadadman:ksensor-sensor-stepcounter:version")
+implementation("io.github.shadadman:ksensor-sensor-motiondetector:version")
 ```
 
 Required Permissions:
-- Android: `ACTIVITY_RECOGNITION` (Required for Step Counter)
+- Android: `ACTIVITY_RECOGNITION` (Required for Step Counter & Motion Detector)
 - iOS: `ACTIVITY_RECOGNITION` (Motion & Fitness)
 
 ### Android Configuration
-Add the following to your `AndroidManifest.xml`:
+Add the following to your `AndroidManifest.xml` if using Step Counter or Motion Detector:
 - `android.permission.ACTIVITY_RECOGNITION`
 
 ### iOS Configuration
-Add the following key to your `Info.plist`:
+Add the following key to your `Info.plist` if using Step Counter or Motion Detector:
 - `NSMotionUsageDescription`: Required for Step Counter and movement detection.
 
 Data Models (Wrapped in `KSensorResponse`):
@@ -130,20 +140,27 @@ Data Models (Wrapped in `KSensorResponse`):
 
 Provides data from sensors that monitor the ambient environment, such as pressure, light, proximity, and ambient noise.
 
-Dependency:
+Dependencies:
 ```kotlin
+// Option A: Domain Convenience Facade
 implementation("io.github.shadadman:ksensor-sensors-environment:version")
+
+// Option B: Atomic Micro-Modules (Zero audio recording permission unless noise is imported!)
+implementation("io.github.shadadman:ksensor-sensor-barometer:version")
+implementation("io.github.shadadman:ksensor-sensor-light:version")
+implementation("io.github.shadadman:ksensor-sensor-proximity:version")
+implementation("io.github.shadadman:ksensor-sensor-noise:version")
 ```
 
 Required Permissions:
-- Android/iOS: `RECORD_AUDIO` (Only required if using the `NoisePlugin`)
+- Android/iOS: `RECORD_AUDIO` (Only required if using the `Noise` plugin)
 
 ### Android Configuration
-Add the following to your `AndroidManifest.xml` if you are using `NoisePlugin`:
+Add the following to your `AndroidManifest.xml` if you are using `Noise` plugin:
 - `android.permission.RECORD_AUDIO`
 
 ### iOS Configuration
-Add the following key to your `Info.plist` if you are using `NoisePlugin`:
+Add the following key to your `Info.plist` if you are using `Noise` plugin:
 - `NSMicrophoneUsageDescription`: Required for ambient noise measurement.
 
 Data Models (Wrapped in `KSensorResponse`):
@@ -157,16 +174,24 @@ Data Models (Wrapped in `KSensorResponse`):
 
 Provides location services and spatial orientation data.
 
-Dependency:
+Dependencies:
 ```kotlin
+// Option A: Domain Convenience Facade
 implementation("io.github.shadadman:ksensor-sensors-positioning:version")
+
+// Option B: Atomic Micro-Modules
+implementation("io.github.shadadman:ksensor-sensor-location:version")
+implementation("io.github.shadadman:ksensor-sensor-magnetometer:version")
+implementation("io.github.shadadman:ksensor-sensor-orientation:version")
+implementation("io.github.shadadman:ksensor-sensor-heading:version")
+implementation("io.github.shadadman:ksensor-sensor-locationstatus:version")
 ```
 
 Required Permissions:
-- Android/iOS: `LOCATION`
+- Android/iOS: `LOCATION` (Required for Location & Heading plugins)
 
 ### Android Configuration
-Add the following to your `AndroidManifest.xml`:
+Add the following to your `AndroidManifest.xml` if using Location or Heading:
 - `android.permission.ACCESS_FINE_LOCATION`
 - `android.permission.ACCESS_COARSE_LOCATION`
 
@@ -180,11 +205,16 @@ Data Models (Wrapped in `KSensorResponse`):
 
 ## Interaction Sensors Plugin
 
-Provides high-level data related to user input gestures.
+Provides high-level data related to user input gestures and scroll positions.
 
-Dependency:
+Dependencies:
 ```kotlin
+// Option A: Domain Convenience Facade
 implementation("io.github.shadadman:ksensor-sensors-interaction:version")
+
+// Option B: Atomic Micro-Modules
+implementation("io.github.shadadman:ksensor-sensor-touch:version")
+implementation("io.github.shadadman:ksensor-sensor-scroll:version")
 ```
 
 Required Permissions: None
@@ -203,9 +233,13 @@ Data Models (Wrapped in `KSensorResponse`):
 
 Provides access to health related data.
 
-Dependency:
+Dependencies:
 ```kotlin
+// Option A: Domain Convenience Facade
 implementation("io.github.shadadman:ksensor-sensors-health:version")
+
+// Option B: Atomic Micro-Module
+implementation("io.github.shadadman:ksensor-sensor-heart:version")
 ```
 
 Required Permissions:
@@ -247,9 +281,15 @@ These plugins provide monitoring for various device system and connectivity stat
 
 Provides information about network connectivity and telephony call state on the device.
 
-Dependency:
+Dependencies:
 ```kotlin
+// Option A: Domain Convenience Facade
 implementation("io.github.shadadman:ksensor-states-network:version")
+
+// Option B: Atomic Micro-Modules (Zero phone state permission unless CallState is imported!)
+implementation("io.github.shadadman:ksensor-state-network-connectivity:version")
+implementation("io.github.shadadman:ksensor-state-network-activenetwork:version")
+implementation("io.github.shadadman:ksensor-state-network-callstate:version")
 ```
 
 Required Permissions:
@@ -268,11 +308,23 @@ Data Models (Wrapped in `KSensorResponse`):
 
 ## System States Plugin
 
-Provides access to general device system states like battery and volume.
+Provides access to general device system states like battery, volume, locale, screen, and resources.
 
-Dependency:
+Dependencies:
 ```kotlin
+// Option A: Domain Convenience Facade
 implementation("io.github.shadadman:ksensor-states-system:version")
+
+// Option B: Atomic Micro-Modules
+implementation("io.github.shadadman:ksensor-state-system-battery:version")
+implementation("io.github.shadadman:ksensor-state-system-volume:version")
+implementation("io.github.shadadman:ksensor-state-system-locale:version")
+implementation("io.github.shadadman:ksensor-state-system-screen:version")
+implementation("io.github.shadadman:ksensor-state-system-brightness:version")
+implementation("io.github.shadadman:ksensor-state-system-lock:version")
+implementation("io.github.shadadman:ksensor-state-system-powersave:version")
+implementation("io.github.shadadman:ksensor-state-system-storage:version")
+implementation("io.github.shadadman:ksensor-state-system-resources:version")
 ```
 
 Required Permissions: None
@@ -293,9 +345,15 @@ Data Models (Wrapped in `KSensorResponse`):
 
 Provides monitoring for BLE connection and discovery events.
 
-Dependency:
+Dependencies:
 ```kotlin
+// Option A: Domain Convenience Facade
 implementation("io.github.shadadman:ksensor-states-bluetooth:version")
+
+// Option B: Atomic Micro-Modules
+implementation("io.github.shadadman:ksensor-state-bluetooth-connections:version")
+implementation("io.github.shadadman:ksensor-state-bluetooth-discoveries:version")
+implementation("io.github.shadadman:ksensor-state-bluetooth-audiodevices:version")
 ```
 
 Required Permissions:
@@ -317,9 +375,13 @@ Data Models (Wrapped in `KSensorResponse`):
 
 Tracks the visibility and lifecycle state of the application.
 
-Dependency:
+Dependencies:
 ```kotlin
+// Option A: Domain Convenience Facade
 implementation("io.github.shadadman:ksensor-states-lifecycle:version")
+
+// Option B: Atomic Micro-Module
+implementation("io.github.shadadman:ksensor-state-lifecycle-appvisibility:version")
 ```
 
 Required Permissions: None
@@ -370,6 +432,15 @@ fun OrientationSampleUsingEffect() {
 }
 ```
 
+Example using Atomic Micro-Module directly:
+```kotlin
+// Directly observe step counter with minimal binary footprint!
+val stepCounterPlugin = remember {
+    createStepCounterPlugin().also { KSensor.register(it) }
+}
+val steps by stepCounterPlugin.observe().collectAsState(null)
+```
+
 Example to unregister a plugin:
 ```kotlin
 KSensor.unregister(PluginId.POSITIONING)
@@ -402,61 +473,9 @@ val iosInfoPlistSnippet: String = KSensor.iosInfoPlistEntries(
 KSensor.printPermissionManifests()
 ```
 
-#### Example Generated Output & Target File Paths
-
-##### Android
-**File Path:** `composeApp/src/androidMain/AndroidManifest.xml` (or `app/src/main/AndroidManifest.xml`)  
-**Placement:** Inside the `<manifest>` root tag, before or outside the `<application>` tag.
-
-```xml
-<!-- AndroidManifest.xml permissions for KSensor plugins -->
-  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-  <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:minSdkVersion="31" android:usesPermissionFlags="neverForLocation" />
-  <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" android:minSdkVersion="31" />
-  <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
-  <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
-  <uses-permission android:name="android.permission.RECORD_AUDIO" />
-```
-
-##### iOS
-**File Path:** `iosApp/iosApp/Info.plist` (or `iosApp/Info.plist`)  
-**Placement:** Inside the top-level `<dict>` tag.
-
-```xml
-<!-- Info.plist permission entries for KSensor plugins -->
-  <key>NSLocationWhenInUseUsageDescription</key>
-  <string>This app requires access to location services to track positioning data.</string>
-  <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-  <string>This app requires background location access to track positioning data.</string>
-  <key>NSBluetoothAlwaysUsageDescription</key>
-  <string>This app requires Bluetooth access to observe Bluetooth state and connected devices.</string>
-  <key>NSMicrophoneUsageDescription</key>
-  <string>This app requires Microphone access to measure ambient sound levels.</string>
-```
-
-### Permission Metadata & Platform Restrictions
-
-Each permission requirement is represented as a structured `PermissionMetadata` instance with:
-- `platform`: `TargetPlatform` (`ANDROID`, `IOS`, or `COMMON`).
-- `permissionName`: Platform identifier (e.g., `android.permission.BLUETOOTH_SCAN` or `NSLocationWhenInUseUsageDescription`).
-- `usageDescriptionKey` & `usageDescriptionDefault`: Keys and default descriptions for iOS `Info.plist` or rationale dialogs.
-- `isRequired`: Flag indicating whether the permission is strictly required or optional for the plugin.
-- `minSdkVersion` & `maxSdkVersion`: Platform SDK version limits (e.g., Android API 31+ for Bluetooth scanning).
-
 ---
 
-## LLM Integration (SKILL)
-
-To help AI agents (like Claude, GPT, or IDE assistants) understand and work with KSensor more effectively, we provide a **SKILL** section. You can inject these documents into your LLM's context to get high-quality code generation and architectural advice specific to KSensor.
-
-### How to use:
-1. **Direct Injection**: Copy the contents of [`SKILL.md`](file:///home/shad/KMP/KSensor/SKILL/SKILL.md) and [`CONTRIBUTING_SKILL.md`](file:///home/shad/KMP/KSensor/SKILL/CONTRIBUTING_SKILL.md) into your LLM's system prompt or context window.
-2. **IDE Assistants**: If you are using Cursor, GitHub Copilot, or Gemini in Android Studio, reference the `SKILL/` folder to provide the agent with deep knowledge of KSensor's plugin system and implementation details.
-3. **Plugin Development**: Use [`CONTRIBUTING_SKILL.md`](file:///home/shad/KMP/KSensor/SKILL/CONTRIBUTING_SKILL.md) when you want the LLM to help you write a new custom plugin for a specific sensor or platform state.
-
 ## License
-
 
 Copyright (c) 2026 KSensor
 
