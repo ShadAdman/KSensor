@@ -23,7 +23,7 @@ All data emitted by plugins is wrapped in a `KSensorResponse<T>` which includes:
 - `data`: The actual sensor or state data.
 - `platform`: The platform type (Android or iOS).
 - `timestamp`: The system time when the data was collected.
-- 
+
 ---
 
 ## Core Module
