@@ -182,7 +182,7 @@ Dependencies:
 // Option A: Domain Convenience Facade
 implementation("io.github.shadadman:ksensor-sensors-positioning:version")
 
-// Option B: Atomic Micro-Modules
+// Option B: Atomic Micro-Modules (Ultra-Small Footprint - Choose only what you need!)
 implementation("io.github.shadadman:ksensor-sensor-location:version")
 implementation("io.github.shadadman:ksensor-sensor-magnetometer:version")
 implementation("io.github.shadadman:ksensor-sensor-orientation:version")
@@ -215,7 +215,7 @@ Dependencies:
 // Option A: Domain Convenience Facade
 implementation("io.github.shadadman:ksensor-sensors-interaction:version")
 
-// Option B: Atomic Micro-Modules
+// Option B: Atomic Micro-Modules (Ultra-Small Footprint - Choose only what you need!)
 implementation("io.github.shadadman:ksensor-sensor-touch:version")
 implementation("io.github.shadadman:ksensor-sensor-scroll:version")
 ```
@@ -241,7 +241,7 @@ Dependencies:
 // Option A: Domain Convenience Facade
 implementation("io.github.shadadman:ksensor-sensors-health:version")
 
-// Option B: Atomic Micro-Module
+// Option B: Atomic Micro-Modules (Ultra-Small Footprint - Choose only what you need!)
 implementation("io.github.shadadman:ksensor-sensor-heart:version")
 ```
 
@@ -318,7 +318,7 @@ Dependencies:
 // Option A: Domain Convenience Facade
 implementation("io.github.shadadman:ksensor-states-system:version")
 
-// Option B: Atomic Micro-Modules
+// Option B: Atomic Micro-Modules (Ultra-Small Footprint - Choose only what you need!)
 implementation("io.github.shadadman:ksensor-state-system-battery:version")
 implementation("io.github.shadadman:ksensor-state-system-volume:version")
 implementation("io.github.shadadman:ksensor-state-system-locale:version")
@@ -353,7 +353,7 @@ Dependencies:
 // Option A: Domain Convenience Facade
 implementation("io.github.shadadman:ksensor-states-bluetooth:version")
 
-// Option B: Atomic Micro-Modules
+// Option B: Atomic Micro-Modules (Ultra-Small Footprint - Choose only what you need!)
 implementation("io.github.shadadman:ksensor-state-bluetooth-connections:version")
 implementation("io.github.shadadman:ksensor-state-bluetooth-discoveries:version")
 implementation("io.github.shadadman:ksensor-state-bluetooth-audiodevices:version")
@@ -383,7 +383,7 @@ Dependencies:
 // Option A: Domain Convenience Facade
 implementation("io.github.shadadman:ksensor-states-lifecycle:version")
 
-// Option B: Atomic Micro-Module
+// Option B: Atomic Micro-Modules (Ultra-Small Footprint - Choose only what you need!)
 implementation("io.github.shadadman:ksensor-state-lifecycle-appvisibility:version")
 ```
 
