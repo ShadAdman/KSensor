@@ -8,19 +8,22 @@
 
 # KSensor
 
+
+KSensor is a pluggable Kotlin Multiplatform library for monitoring device hardware sensors, positioning, health metrics, and system states across Android and iOS. Powered by Kotlin Coroutines & Flow, it provides a unified, type-safe reactive API for seamlessly tracking motion, ambient environment, network connectivity, battery, and application lifecycle events.
+
 > [!TIP]
 > **Ultra Small App Footprint & Atomic Micro-Modules**: **KSensor supports granular, single-sensor micro-modules!** Instead of pulling in full domain bundles, you can depend **only** on the exact atomic sensor or state artifact you need (e.g. `ksensor-sensor-stepcounter`, `ksensor-state-system-battery`, `ksensor-sensor-accelerometer`). This **dramatically reduces your consumer app binary size**, **eliminates unused platform permissions**, and **prevents pulling in heavy transitive dependencies** (like Google Play Services or CameraX) when you don't need them!
 
-KSensor is a pluggable Kotlin Multiplatform library for monitoring device hardware sensors, positioning, health metrics, and system states across Android and iOS. Powered by Kotlin Coroutines & Flow, it provides a unified, type-safe reactive API for seamlessly tracking motion, ambient environment, network connectivity, battery, and application lifecycle events.
+> [!NOTE]
+> **Permissions**: Plugins declare structured permission metadata. You can auto-generate `AndroidManifest.xml` and iOS `Info.plist` permission snippets using `KSensor.permissionManifest()` and `KSensor.iosInfoPlistEntries()`. For complete details and examples, see [Permissions Handling](#permissions-handling).
+
+
 
 All data emitted by plugins is wrapped in a `KSensorResponse<T>` which includes:
 - `data`: The actual sensor or state data.
 - `platform`: The platform type (Android or iOS).
 - `timestamp`: The system time when the data was collected.
-
-> [!NOTE]
-> **Permissions**: Plugins declare structured permission metadata. You can auto-generate `AndroidManifest.xml` and iOS `Info.plist` permission snippets using `KSensor.permissionManifest()` and `KSensor.iosInfoPlistEntries()`. For complete details and examples, see [Permissions Handling](#permissions-handling).
-
+- 
 ---
 
 ## Core Module
