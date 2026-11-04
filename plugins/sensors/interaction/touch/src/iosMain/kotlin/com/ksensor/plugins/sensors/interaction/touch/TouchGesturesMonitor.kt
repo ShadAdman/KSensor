@@ -2,6 +2,12 @@ package com.ksensor.plugins.sensors.interaction.touch
 
 import com.ksensor.core.model.SensorData
 import com.ksensor.core.model.TouchGestureType
+import kotlinx.cinterop.BetaInteropApi
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.ObjCAction
+import kotlinx.cinterop.useContents
+import platform.Foundation.NSSelectorFromString
+import platform.UIKit.UIApplication
 import platform.UIKit.UIGestureRecognizer
 import platform.UIKit.UIGestureRecognizerDelegateProtocol
 import platform.UIKit.UIGestureRecognizerStateEnded
@@ -9,9 +15,9 @@ import platform.UIKit.UILongPressGestureRecognizer
 import platform.UIKit.UITapGestureRecognizer
 import platform.UIKit.UIView
 import platform.UIKit.UIWindow
-import platform.UIKit.subviews
 import platform.darwin.NSObject
 
+@OptIn(ExperimentalForeignApi::class)
 internal object TouchGesturesMonitor {
 
     private var observer: ((SensorData.TouchGestures) -> Unit)? = null
@@ -26,10 +32,9 @@ internal object TouchGesturesMonitor {
     }
 
     private fun attachToAllWindows() {
-        val windows = platform.UIKit.UIApplication.sharedApplication.windows
-        for (i in 0 until windows.count.toInt()) {
-            val window = windows.objectAtIndex(i.toULong()) as? UIWindow
-            window?.let { attachToView(it) }
+        val windows = UIApplication.sharedApplication.windows
+        for (window in windows) {
+            (window as? UIWindow)?.let { attachToView(it) }
         }
     }
 
@@ -41,41 +46,41 @@ internal object TouchGesturesMonitor {
         val singleTap = UITapGestureRecognizer().apply {
             numberOfTapsRequired = 1u
             delegate = gestureDelegate
-            addTarget(gestureDelegate, platform.Foundation.NSSelectorFromString("handleSingleTap:"))
+            addTarget(gestureDelegate, NSSelectorFromString("handleSingleTap:"))
         }
 
         val doubleTap = UITapGestureRecognizer().apply {
             numberOfTapsRequired = 2u
             delegate = gestureDelegate
-            addTarget(gestureDelegate, platform.Foundation.NSSelectorFromString("handleDoubleTap:"))
+            addTarget(gestureDelegate, NSSelectorFromString("handleDoubleTap:"))
         }
         singleTap.requireGestureRecognizerToFail(doubleTap)
 
         val longPress = UILongPressGestureRecognizer().apply {
             delegate = gestureDelegate
-            addTarget(gestureDelegate, platform.Foundation.NSSelectorFromString("handleLongPress:"))
+            addTarget(gestureDelegate, NSSelectorFromString("handleLongPress:"))
         }
 
         view.addGestureRecognizer(singleTap)
         view.addGestureRecognizer(doubleTap)
         view.addGestureRecognizer(longPress)
 
-        val subviews = view.subviews
-        for (i in 0 until subviews.count.toInt()) {
-            val subview = subviews.objectAtIndex(i.toULong()) as? UIView
-            subview?.let { attachToView(it) }
+        for (subview in view.subviews) {
+            (subview as? UIView)?.let { attachToView(it) }
         }
     }
 
+    @OptIn(BetaInteropApi::class)
     private class GestureDelegate(
-        private val callback: (TouchGestureType, Float, Float) -> Unit
+        private val callback: (TouchGestureType, Float, Float) -> Unit,
     ) : NSObject(), UIGestureRecognizerDelegateProtocol {
 
         override fun gestureRecognizer(
             gestureRecognizer: UIGestureRecognizer,
-            shouldRecognizeSimultaneouslyWithGestureRecognizer: UIGestureRecognizer
+            shouldRecognizeSimultaneouslyWithGestureRecognizer: UIGestureRecognizer,
         ): Boolean = true
 
+        @ObjCAction
         @Suppress("unused")
         fun handleSingleTap(recognizer: UITapGestureRecognizer) {
             if (recognizer.state == UIGestureRecognizerStateEnded) {
@@ -86,6 +91,7 @@ internal object TouchGesturesMonitor {
             }
         }
 
+        @ObjCAction
         @Suppress("unused")
         fun handleDoubleTap(recognizer: UITapGestureRecognizer) {
             if (recognizer.state == UIGestureRecognizerStateEnded) {
@@ -96,6 +102,7 @@ internal object TouchGesturesMonitor {
             }
         }
 
+        @ObjCAction
         @Suppress("unused")
         fun handleLongPress(recognizer: UILongPressGestureRecognizer) {
             if (recognizer.state == UIGestureRecognizerStateEnded) {
