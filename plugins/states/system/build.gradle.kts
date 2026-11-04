@@ -1,7 +1,5 @@
 @file:OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
 
-import com.vanniktech.maven.publish.KotlinMultiplatform
-
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidKotlinMultiplatformLibrary)
@@ -13,64 +11,33 @@ kotlin {
         namespace = "com.ksensor.plugins.states.system"
         compileSdk = 36
         minSdk = 24
-
-        withHostTestBuilder {
-        }
-
-        withDeviceTestBuilder {
-            sourceSetTreeName = "test"
-        }
     }
 
     val xcfName = "systemStateKit"
 
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
-            baseName = xcfName
-            isStatic = true
-        }
-        iosTarget.compilations.getByName("main") {
-            cinterops {
-                create("nskeyvalueobserving")
-                create("mach_info")
-            }
-        }
-    }
-
+    iosX64 { binaries.framework { baseName = xcfName } }
+    iosArm64 { binaries.framework { baseName = xcfName } }
+    iosSimulatorArm64 { binaries.framework { baseName = xcfName } }
     jvm()
-
-    wasmJs {
-        browser()
-    }
+    wasmJs { browser() }
 
     sourceSets {
-        commonTest {
-            dependencies {
-                implementation(libs.kotlin.test)
-                implementation(libs.kotlinx.coroutines.test)
-            }
+        commonMain.dependencies {
+            api(projects.core)
+            api(project(":plugins:states:system:battery"))
+            api(project(":plugins:states:system:volume"))
+            api(project(":plugins:states:system:locale"))
+            api(project(":plugins:states:system:screen"))
+            api(project(":plugins:states:system:brightness"))
+            api(project(":plugins:states:system:lock"))
+            api(project(":plugins:states:system:powersave"))
+            api(project(":plugins:states:system:storage"))
+            api(project(":plugins:states:system:resources"))
+            implementation(libs.kotlinx.coroutines.core)
         }
-        commonMain {
-            dependencies {
-                implementation(projects.core)
-                implementation(libs.kotlinx.coroutines.core)
-            }
-        }
-        androidMain {
-            dependencies {
-                implementation(libs.androidx.core)
-            }
-        }
-        getByName("androidDeviceTest") {
-            dependencies {
-                implementation(libs.kotlin.test)
-                implementation(libs.androidx.test.junit)
-                implementation(libs.androidx.core)
-            }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
         }
     }
 }

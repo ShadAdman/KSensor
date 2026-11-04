@@ -5,8 +5,8 @@ enum class DeviceOrientation {
     PORTRAIT, LANDSCAPE, UNKNOWN
 }
 
-enum class TouchGestureType{
-    ACTION_DOWN,ACTION_UP,ACTION_MOVE
+enum class TouchGestureType {
+    ACTION_DOWN, ACTION_UP, ACTION_MOVE, TAP, DOUBLE_TAP, LONG_PRESS
 }
 
 enum class SensorType {

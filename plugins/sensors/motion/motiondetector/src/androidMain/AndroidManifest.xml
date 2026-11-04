@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <receiver
+            android:name="com.ksensor.plugins.sensors.motion.motiondetector.ActivityRecognitionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.ksensor.plugins.sensors.motion.motiondetector.ACTION_PROCESS_ACTIVITY" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

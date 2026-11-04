@@ -195,6 +195,34 @@ fun IntroPage(onPageSelected: (DocPage) -> Unit) {
 
         Spacer(modifier = Modifier.height(32.dp))
 
+        // Ultra-Small Footprint Highlight Card
+        Card(
+            elevation = 0.dp,
+            backgroundColor = Color(0xFFE8F5E9),
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Speed, contentDescription = null, tint = Color(0xFF2E7D32), modifier = Modifier.size(24.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        "Ultra-Small Footprint & Atomic Micro-Modules",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = Color(0xFF1B5E20)
+                    )
+                }
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    "KSensor supports granular single-sensor micro-modules (e.g. ksensor-sensor-stepcounter, ksensor-state-system-battery). Depend only on the exact sensor or state artifact you need to minimize binary size, eliminate unused platform permissions, and avoid heavy transitive dependencies!",
+                    fontSize = 14.sp,
+                    color = Color(0xFF2E7D32),
+                    lineHeight = 20.sp
+                )
+            }
+        }
+
         // Permissions Highlight Card
         Card(
             elevation = 0.dp,
