@@ -1,5 +1,6 @@
 package com.ksensor.core
 
+import com.ksensor.core.benchmark.BenchmarkMonitor
 import com.ksensor.core.model.PluginId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -39,6 +40,11 @@ object KSensor {
      * Permission handler for checking and requesting permissions.
      */
     val permissionHandler: PermissionHandler by lazy { createPermissionHandler() }
+
+    /**
+     * Live telemetry collector and benchmark monitor for KSensor.
+     */
+    val benchmark: BenchmarkMonitor get() = BenchmarkMonitor
 
     /**
      * Registers a plugin.
