@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Thread-safe live telemetry collector and benchmark monitor for KSensor.
@@ -68,7 +69,7 @@ object BenchmarkMonitor {
     }
 
     private val trackers = mutableMapOf<PluginId, PluginTracker>()
-    private val lock = Any()
+    private val lock = KSensorLock()
 
     /**
      * Records an event emission for a specific plugin.
@@ -78,7 +79,7 @@ object BenchmarkMonitor {
         eventTimestamp: Long = currentTimestamp(),
         receiveTimestamp: Long = currentTimestamp()
     ) {
-        synchronized(lock) {
+        lock.withLock {
             val tracker = trackers.getOrPut(pluginId) { PluginTracker(pluginId) }
             tracker.record(eventTimestamp, receiveTimestamp)
         }
@@ -89,38 +90,38 @@ object BenchmarkMonitor {
      */
     fun getSnapshot(): BenchmarkReport {
         val now = currentTimestamp()
-        synchronized(lock) {
+        return lock.withLock {
             if (trackers.isEmpty()) {
-                return BenchmarkReport(
+                BenchmarkReport(
                     memoryUsageMb = ((getMemoryUsageMb() * 10.0).roundToInt() / 10.0),
                     timestamp = now
                 )
+            } else {
+                val metricsMap = trackers.mapValues { (_, tracker) -> tracker.calculateMetrics(now) }
+                val activePluginsCount = metricsMap.values.count { (now - it.lastEventTimestamp) < 10000L }
+                val totalEvents = metricsMap.values.sumOf { it.eventCount }
+                val totalEps = metricsMap.values.sumOf { it.eventsPerSecond }
+                val validLatencies = metricsMap.values.filter { it.eventCount > 0 }
+
+                val overallAvgLatency = if (validLatencies.isNotEmpty()) {
+                    validLatencies.map { it.averageLatencyMs }.average()
+                } else 0.0
+
+                val overallMaxLatency = if (validLatencies.isNotEmpty()) {
+                    validLatencies.maxOf { it.maxLatencyMs }
+                } else 0.0
+
+                BenchmarkReport(
+                    activePluginsCount = activePluginsCount,
+                    totalEventsCount = totalEvents,
+                    totalEventsPerSecond = (totalEps * 10.0).roundToInt() / 10.0,
+                    averageLatencyMs = (overallAvgLatency * 10.0).roundToInt() / 10.0,
+                    maxLatencyMs = (overallMaxLatency * 10.0).roundToInt() / 10.0,
+                    memoryUsageMb = ((getMemoryUsageMb() * 10.0).roundToInt() / 10.0),
+                    pluginMetrics = metricsMap,
+                    timestamp = now
+                )
             }
-
-            val metricsMap = trackers.mapValues { (_, tracker) -> tracker.calculateMetrics(now) }
-            val activePluginsCount = metricsMap.values.count { (now - it.lastEventTimestamp) < 10000L }
-            val totalEvents = metricsMap.values.sumOf { it.eventCount }
-            val totalEps = metricsMap.values.sumOf { it.eventsPerSecond }
-            val validLatencies = metricsMap.values.filter { it.eventCount > 0 }
-
-            val overallAvgLatency = if (validLatencies.isNotEmpty()) {
-                validLatencies.map { it.averageLatencyMs }.average()
-            } else 0.0
-
-            val overallMaxLatency = if (validLatencies.isNotEmpty()) {
-                validLatencies.maxOf { it.maxLatencyMs }
-            } else 0.0
-
-            return BenchmarkReport(
-                activePluginsCount = activePluginsCount,
-                totalEventsCount = totalEvents,
-                totalEventsPerSecond = (totalEps * 10.0).roundToInt() / 10.0,
-                averageLatencyMs = (overallAvgLatency * 10.0).roundToInt() / 10.0,
-                maxLatencyMs = (overallMaxLatency * 10.0).roundToInt() / 10.0,
-                memoryUsageMb = ((getMemoryUsageMb() * 10.0).roundToInt() / 10.0),
-                pluginMetrics = metricsMap,
-                timestamp = now
-            )
         }
     }
 
@@ -130,7 +131,7 @@ object BenchmarkMonitor {
     fun observeReport(sampleIntervalMs: Long = 1000L): Flow<BenchmarkReport> = flow {
         while (true) {
             emit(getSnapshot())
-            delay(sampleIntervalMs)
+            delay(sampleIntervalMs.milliseconds)
         }
     }
 
@@ -139,8 +140,8 @@ object BenchmarkMonitor {
      */
     fun isBenchmarkingActive(): Boolean {
         val now = currentTimestamp()
-        synchronized(lock) {
-            return trackers.values.any { (now - it.lastEventTimestamp) < 10000L }
+        return lock.withLock {
+            trackers.values.any { (now - it.lastEventTimestamp) < 10000L }
         }
     }
 
@@ -148,7 +149,7 @@ object BenchmarkMonitor {
      * Resets all accumulated benchmark metrics.
      */
     fun reset() {
-        synchronized(lock) {
+        lock.withLock {
             trackers.clear()
         }
     }
