@@ -1,6 +1,8 @@
 package com.ksensor.sample
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -43,6 +45,7 @@ sealed class Screen {
     object Catalog : Screen()
     data class PluginDetail(val pluginCatalog: PluginCatalog) : Screen()
     object ManifestGenerator : Screen()
+    object LiveBenchmark : Screen()
 }
 
 enum class CatalogCategory { SENSORS, STATES }
@@ -275,7 +278,8 @@ fun App() {
                     CatalogScreen(
                         items = catalogItems,
                         onSelectPlugin = { item -> currentScreen = Screen.PluginDetail(item) },
-                        onOpenManifestGenerator = { currentScreen = Screen.ManifestGenerator }
+                        onOpenManifestGenerator = { currentScreen = Screen.ManifestGenerator },
+                        onOpenBenchmark = { currentScreen = Screen.LiveBenchmark }
                     )
                 }
                 is Screen.PluginDetail -> {
@@ -288,6 +292,11 @@ fun App() {
                         currentScreen = Screen.Catalog
                     }
                 }
+                is Screen.LiveBenchmark -> {
+                    LiveBenchmarkScreen {
+                        currentScreen = Screen.Catalog
+                    }
+                }
             }
         }
     }
@@ -297,7 +306,8 @@ fun App() {
 fun CatalogScreen(
     items: List<PluginCatalog>,
     onSelectPlugin: (PluginCatalog) -> Unit,
-    onOpenManifestGenerator: () -> Unit
+    onOpenManifestGenerator: () -> Unit,
+    onOpenBenchmark: () -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<CatalogCategory?>(null) }
@@ -321,6 +331,9 @@ fun CatalogScreen(
             TopAppBar(
                 title = { Text("KSensor Plugin Catalog") },
                 actions = {
+                    TextButton(onClick = onOpenBenchmark) {
+                        Text("Benchmark", color = MaterialTheme.colors.onPrimary)
+                    }
                     TextButton(onClick = onOpenManifestGenerator) {
                         Text("Manifests", color = MaterialTheme.colors.onPrimary)
                     }
@@ -791,3 +804,110 @@ fun ManifestGeneratorScreen(
 
 @Composable
 expect fun NativeScrollableContent(modifier: Modifier)
+
+@Composable
+fun LiveBenchmarkScreen(onBack: () -> Unit) {
+    val reportState by remember { KSensor.benchmark.observeReport(1000L) }.collectAsState(initial = KSensor.benchmark.getSnapshot())
+    var isSimulating by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isSimulating) {
+        if (isSimulating) {
+            while (isSimulating) {
+                val now = com.ksensor.core.currentTimestamp()
+                KSensor.benchmark.recordEvent(PluginId.ACCELEROMETER, now - 1, now)
+                KSensor.benchmark.recordEvent(PluginId.GYROSCOPE, now - 1, now)
+                KSensor.benchmark.recordEvent(PluginId.TOUCH_GESTURES, now - 1, now)
+                kotlinx.coroutines.delay(10L)
+            }
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Live Telemetry Benchmark") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Text("←", style = MaterialTheme.typography.h6, color = MaterialTheme.colors.onPrimary)
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp).verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Real-Time Telemetry Metrics", style = MaterialTheme.typography.h6)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = { isSimulating = !isSimulating },
+                        colors = ButtonDefaults.buttonColors(
+                            backgroundColor = if (isSimulating) MaterialTheme.colors.secondary else MaterialTheme.colors.primary
+                        )
+                    ) {
+                        Text(if (isSimulating) "Stop Simulator" else "Run Benchmark Sim")
+                    }
+                    OutlinedButton(onClick = { KSensor.benchmark.reset() }) {
+                        Text("Reset")
+                    }
+                }
+            }
+
+            // Summary Cards
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Card(modifier = Modifier.weight(1f), backgroundColor = MaterialTheme.colors.primary.copy(alpha = 0.1f), elevation = 0.dp) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text("TOTAL EVENT RATE", style = MaterialTheme.typography.caption)
+                        Text("${reportState.totalEventsPerSecond} Hz", style = MaterialTheme.typography.h6, color = MaterialTheme.colors.primary)
+                    }
+                }
+                Card(modifier = Modifier.weight(1f), backgroundColor = MaterialTheme.colors.secondary.copy(alpha = 0.1f), elevation = 0.dp) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text("AVG LATENCY", style = MaterialTheme.typography.caption)
+                        Text("${reportState.averageLatencyMs} ms", style = MaterialTheme.typography.h6, color = MaterialTheme.colors.secondary)
+                    }
+                }
+                Card(modifier = Modifier.weight(1f), backgroundColor = MaterialTheme.colors.surface, elevation = 2.dp) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text("HEAP MEMORY", style = MaterialTheme.typography.caption)
+                        Text("${reportState.memoryUsageMb} MB", style = MaterialTheme.typography.h6)
+                    }
+                }
+            }
+
+            Text("Plugin Breakdown", style = MaterialTheme.typography.subtitle1)
+
+            val metricsList = reportState.pluginMetrics.values.toList()
+            if (metricsList.isEmpty()) {
+                Card(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
+                    Text("No sensor emissions recorded yet. Tap 'Run Benchmark Sim' or activate sensors in catalog to stream telemetry.", modifier = Modifier.padding(16.dp))
+                }
+            } else {
+                metricsList.forEach { metrics ->
+                    Card(modifier = Modifier.fillMaxWidth(), elevation = 1.dp) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(metrics.pluginId.name, style = MaterialTheme.typography.subtitle2)
+                                Text("Total Events: ${metrics.eventCount}", style = MaterialTheme.typography.caption)
+                            }
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text("${metrics.eventsPerSecond} Hz", style = MaterialTheme.typography.body2, color = MaterialTheme.colors.primary)
+                                Text("Avg Latency: ${metrics.averageLatencyMs} ms", style = MaterialTheme.typography.caption)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
