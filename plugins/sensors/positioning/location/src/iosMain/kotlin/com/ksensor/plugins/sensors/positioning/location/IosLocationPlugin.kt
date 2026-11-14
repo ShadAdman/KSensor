@@ -3,6 +3,7 @@ package com.ksensor.plugins.sensors.positioning.location
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.SensorData
+import com.ksensor.core.trackPluginDiagnostics
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
 import kotlinx.coroutines.channels.awaitClose
@@ -35,7 +36,7 @@ class IosLocationPlugin : LocationPlugin {
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
         awaitClose { locationManager.stopUpdatingLocation() }
-    }
+    }.trackPluginDiagnostics(id)
 }
 
 actual fun createLocationPlugin(): LocationPlugin = IosLocationPlugin()

@@ -3,6 +3,7 @@ package com.ksensor.plugins.sensors.environment.light
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.SensorData
+import com.ksensor.core.trackPluginDiagnostics
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -24,7 +25,7 @@ class IosLightPlugin : LightPlugin {
         )
         NSRunLoop.mainRunLoop.addTimer(timer, NSRunLoopCommonModes)
         awaitClose { timer.invalidate() }
-    }
+    }.trackPluginDiagnostics(id)
 }
 
 actual fun createLightPlugin(): LightPlugin = IosLightPlugin()

@@ -90,6 +90,41 @@ object KSensor {
     fun printPermissionManifests(
         plugins: List<KSensorPlugin> = getRegisteredPlugins()
     )
+
+    /**
+     * Retrieves current health and status diagnostics for all registered plugins.
+     */
+    fun diagnostics(): Map<PluginId, PluginDiagnostics>
+
+    /**
+     * Retrieves current diagnostics for a specific plugin ID.
+     */
+    fun diagnostics(id: PluginId): PluginDiagnostics?
+
+    /**
+     * Returns a list of plugin diagnostics matching the given [PluginStatus].
+     */
+    fun filterStatus(status: PluginStatus): List<PluginDiagnostics>
+
+    /**
+     * Live StateFlow emitting updated health diagnostics for all registered plugins.
+     */
+    val diagnosticsFlow: StateFlow<Map<PluginId, PluginDiagnostics>>
+
+    /**
+     * Registers a global diagnostics observer/sink for receiving plugin status updates.
+     */
+    fun addDiagnosticsObserver(observer: PluginDiagnosticsObserver)
+
+    /**
+     * Removes a previously registered global diagnostics observer/sink.
+     */
+    fun removeDiagnosticsObserver(observer: PluginDiagnosticsObserver)
+
+    /**
+     * Re-evaluates permissions and platform availability for registered plugins.
+     */
+    fun refreshDiagnostics(id: PluginId? = null)
 }
 ```
 
@@ -447,6 +482,51 @@ val steps by stepCounterPlugin.observe().collectAsState(null)
 Example to unregister a plugin:
 ```kotlin
 KSensor.unregister(PluginId.POSITIONING)
+```
+
+---
+
+## Plugin Lifecycle & Health Diagnostics API
+
+KSensor exposes a first-class health and lifecycle reporting API for every plugin so developers can inspect whether a sensor is active, idle, failed, unsupported, or blocked by missing permissions without reading native system logs.
+
+### PluginStatus States
+
+| Status | Description |
+| :--- | :--- |
+| **READY** | Registered, supported, permissions granted, ready to observe. |
+| **ACTIVE** | Actively observing or emitting sensor data / state updates. |
+| **IDLE** | Registered but currently idle / not actively observing. |
+| **UNSUPPORTED** | Not supported on the current platform type or missing device hardware. |
+| **BLOCKED_BY_PERMISSION** | Required runtime permissions are missing or denied. |
+| **ERROR** | Encountered a runtime exception during setup or observation. |
+
+### Inspecting & Observing Diagnostics
+
+```kotlin
+// 1. Observe real-time diagnostics map for all registered plugins
+val diagnosticsMap by KSensor.diagnosticsFlow.collectAsState()
+
+// 2. Query snapshot or filter by PluginStatus
+val readyPlugins: List<PluginDiagnostics> = KSensor.filterStatus(PluginStatus.READY)
+val blockedPlugins: List<PluginDiagnostics> = KSensor.filterStatus(PluginStatus.BLOCKED_BY_PERMISSION)
+
+// 3. Inspect a specific plugin's health
+val locationDiagnostics: PluginDiagnostics? = KSensor.diagnostics(PluginId.LOCATION)
+if (locationDiagnostics?.status == PluginStatus.UNSUPPORTED) {
+    println("Location unsupported reason: ${locationDiagnostics.unsupportedReason}")
+}
+
+// 4. Attach a global diagnostics observer or sink
+KSensor.addDiagnosticsObserver { diag ->
+    println("[${diag.pluginId}] Status changed to ${diag.status}")
+    if (diag.lastErrorMessage != null) {
+        println("Error message: ${diag.lastErrorMessage}")
+    }
+}
+
+// 5. Re-check permissions and platform availability at runtime
+KSensor.refreshDiagnostics()
 ```
 
 ---

@@ -1,14 +1,18 @@
 package com.ksensor.plugins.sensors.environment.proximity
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import com.ksensor.core.KSensor
+import com.ksensor.core.PluginStatus
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.context.KSensorContext
 import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.SensorData
+import com.ksensor.core.trackPluginDiagnostics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -27,11 +31,17 @@ class AndroidProximityPlugin : ProximityPlugin {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val flows = ConcurrentHashMap<SensorConfig, Flow<KSensorResponse<SensorData.Proximity>>>()
 
+    @SuppressLint("NewApi")
     override fun observe(config: SensorConfig): Flow<KSensorResponse<SensorData.Proximity>> =
         flows.getOrPut(config) {
             callbackFlow {
                 val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY)
                 if (sensor == null) {
+                    KSensor.reportStatus(
+                        pluginId = id,
+                        status = PluginStatus.UNSUPPORTED,
+                        unsupportedReason = "Proximity sensor hardware is not available on this device"
+                    )
                     close()
                     return@callbackFlow
                 }
@@ -45,7 +55,9 @@ class AndroidProximityPlugin : ProximityPlugin {
                 }
                 sensorManager.registerListener(listener, sensor, SensorManager.SENSOR_DELAY_NORMAL)
                 awaitClose { sensorManager.unregisterListener(listener) }
-            }.shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
+            }
+                .trackPluginDiagnostics(id)
+                .shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
         }
 }
 
