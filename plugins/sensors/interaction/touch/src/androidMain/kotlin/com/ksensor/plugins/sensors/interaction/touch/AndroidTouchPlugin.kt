@@ -3,6 +3,7 @@ package com.ksensor.plugins.sensors.interaction.touch
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.SensorData
+import com.ksensor.core.trackPluginDiagnostics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -24,7 +25,9 @@ class AndroidTouchPlugin : TouchPlugin {
                     trySend(KSensorResponse(it))
                 }
                 awaitClose { TouchGesturesMonitor.removeObserver() }
-            }.shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
+            }
+                .trackPluginDiagnostics(id)
+                .shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
         }
 }
 

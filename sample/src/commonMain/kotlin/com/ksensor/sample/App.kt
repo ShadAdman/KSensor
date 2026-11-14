@@ -37,6 +37,7 @@ import com.ksensor.plugins.sensors.health.createHealthPlugin
 import com.ksensor.plugins.sensors.environment.createEnvironmentPlugin
 import com.ksensor.plugins.states.bluetooth.createBluetoothPlugin
 import com.ksensor.plugins.states.system.createSystemPlugin
+import com.ksensor.sample.diagnostics.DiagnosticsSample
 import com.ksensor.plugins.states.network.createNetworkPlugin
 import com.ksensor.plugins.sensors.interaction.createInteractionPlugin
 import com.ksensor.plugins.states.lifecycle.createLifecyclePlugin
@@ -46,6 +47,7 @@ sealed class Screen {
     data class PluginDetail(val pluginCatalog: PluginCatalog) : Screen()
     object ManifestGenerator : Screen()
     object LiveBenchmark : Screen()
+    object Diagnostics : Screen()
 }
 
 enum class CatalogCategory { SENSORS, STATES }
@@ -279,7 +281,8 @@ fun App() {
                         items = catalogItems,
                         onSelectPlugin = { item -> currentScreen = Screen.PluginDetail(item) },
                         onOpenManifestGenerator = { currentScreen = Screen.ManifestGenerator },
-                        onOpenBenchmark = { currentScreen = Screen.LiveBenchmark }
+                        onOpenBenchmark = { currentScreen = Screen.LiveBenchmark },
+                        onOpenDiagnostics = { currentScreen = Screen.Diagnostics }
                     )
                 }
                 is Screen.PluginDetail -> {
@@ -297,6 +300,24 @@ fun App() {
                         currentScreen = Screen.Catalog
                     }
                 }
+                is Screen.Diagnostics -> {
+                    Scaffold(
+                        topBar = {
+                            TopAppBar(
+                                title = { Text("Plugin Diagnostics & Health") },
+                                navigationIcon = {
+                                    TextButton(onClick = { currentScreen = Screen.Catalog }) {
+                                        Text("← Back", color = MaterialTheme.colors.onPrimary)
+                                    }
+                                }
+                            )
+                        }
+                    ) { padding ->
+                        Box(modifier = Modifier.padding(padding)) {
+                            DiagnosticsSample()
+                        }
+                    }
+                }
             }
         }
     }
@@ -307,7 +328,8 @@ fun CatalogScreen(
     items: List<PluginCatalog>,
     onSelectPlugin: (PluginCatalog) -> Unit,
     onOpenManifestGenerator: () -> Unit,
-    onOpenBenchmark: () -> Unit
+    onOpenBenchmark: () -> Unit,
+    onOpenDiagnostics: () -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<CatalogCategory?>(null) }
@@ -331,6 +353,9 @@ fun CatalogScreen(
             TopAppBar(
                 title = { Text("KSensor Plugin Catalog") },
                 actions = {
+                    TextButton(onClick = onOpenDiagnostics) {
+                        Text("Health", color = MaterialTheme.colors.onPrimary)
+                    }
                     TextButton(onClick = onOpenBenchmark) {
                         Text("Benchmark", color = MaterialTheme.colors.onPrimary)
                     }

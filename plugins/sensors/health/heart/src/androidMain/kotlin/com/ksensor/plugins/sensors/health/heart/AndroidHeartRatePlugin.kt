@@ -2,10 +2,13 @@ package com.ksensor.plugins.sensors.health.heart
 
 import android.content.Context
 import android.util.Log
+import com.ksensor.core.KSensor
+import com.ksensor.core.PluginStatus
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.context.KSensorContext
 import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.SensorData
+import com.ksensor.core.trackPluginDiagnostics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -37,8 +40,15 @@ class AndroidHeartRatePlugin : HeartRatePlugin {
                     emitAll(cameraMonitor.start())
                 } else {
                     Log.w("AndroidHeartRatePlugin", "Heart rate monitoring is not supported on this device")
+                    KSensor.reportStatus(
+                        pluginId = id,
+                        status = PluginStatus.UNSUPPORTED,
+                        unsupportedReason = "Neither hardware heart rate sensor nor camera PPG is available on this device"
+                    )
                 }
-            }.shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
+            }
+                .trackPluginDiagnostics(id)
+                .shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
         }
 }
 

@@ -3,6 +3,7 @@ package com.ksensor.plugins.sensors.interaction.touch
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.SensorData
+import com.ksensor.core.trackPluginDiagnostics
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -13,7 +14,7 @@ class IosTouchPlugin : TouchPlugin {
             trySend(KSensorResponse(it))
         }
         awaitClose { TouchGesturesMonitor.removeObserver() }
-    }
+    }.trackPluginDiagnostics(id)
 }
 
 actual fun createTouchPlugin(): TouchPlugin = IosTouchPlugin()

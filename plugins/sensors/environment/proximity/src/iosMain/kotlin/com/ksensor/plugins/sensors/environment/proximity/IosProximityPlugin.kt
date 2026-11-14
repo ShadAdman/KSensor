@@ -3,6 +3,7 @@ package com.ksensor.plugins.sensors.environment.proximity
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.SensorData
+import com.ksensor.core.trackPluginDiagnostics
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -29,7 +30,7 @@ class IosProximityPlugin : ProximityPlugin {
             NSNotificationCenter.defaultCenter.removeObserver(observer)
             device.proximityMonitoringEnabled = false
         }
-    }
+    }.trackPluginDiagnostics(id)
 }
 
 actual fun createProximityPlugin(): ProximityPlugin = IosProximityPlugin()

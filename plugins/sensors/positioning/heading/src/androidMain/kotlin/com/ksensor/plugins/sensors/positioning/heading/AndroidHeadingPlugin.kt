@@ -15,6 +15,7 @@ import com.ksensor.core.SensorConfig
 import com.ksensor.core.context.KSensorContext
 import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.SensorData
+import com.ksensor.core.trackPluginDiagnostics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -127,7 +128,9 @@ class AndroidHeadingPlugin : HeadingPlugin {
                     locationManager.removeUpdates(locationListener)
                     sensorManager.unregisterListener(sensorListener)
                 }
-            }.shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
+            }
+                .trackPluginDiagnostics(id)
+                .shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
         }
 }
 
