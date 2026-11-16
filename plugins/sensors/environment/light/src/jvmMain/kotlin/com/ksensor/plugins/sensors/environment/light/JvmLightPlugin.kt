@@ -7,6 +7,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
 class JvmLightPlugin : LightPlugin {
+    override val isSupported: Boolean get() = false
+    override val unsupportedReason: String get() = "Light sensor is not supported on platform Desktop/JVM"
+
     override fun observe(config: SensorConfig): Flow<KSensorResponse<SensorData.LightIlluminance>> = emptyFlow()
 }
 

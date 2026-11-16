@@ -1,9 +1,12 @@
 package com.ksensor.plugins.sensors.positioning.magnetometer
 
+import com.ksensor.core.KSensor
+import com.ksensor.core.PluginStatus
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.SensorData
 import com.ksensor.core.model.Vector3
+import com.ksensor.core.trackPluginDiagnostics
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
 import kotlinx.coroutines.channels.awaitClose
@@ -18,6 +21,11 @@ class IosMagnetometerPlugin : MagnetometerPlugin {
     @OptIn(ExperimentalForeignApi::class)
     override fun observe(config: SensorConfig): Flow<KSensorResponse<SensorData.Magnetometer>> = callbackFlow {
         if (!motionManager.magnetometerAvailable) {
+            KSensor.reportStatus(
+                pluginId = id,
+                status = PluginStatus.UNSUPPORTED,
+                unsupportedReason = "Magnetometer hardware is not available on this iOS device"
+            )
             close()
             return@callbackFlow
         }
@@ -29,7 +37,7 @@ class IosMagnetometerPlugin : MagnetometerPlugin {
             }
         }
         awaitClose { motionManager.stopMagnetometerUpdates() }
-    }
+    }.trackPluginDiagnostics(id)
 }
 
 actual fun createMagnetometerPlugin(): MagnetometerPlugin = IosMagnetometerPlugin()

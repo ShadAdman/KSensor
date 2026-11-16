@@ -1,14 +1,18 @@
 package com.ksensor.plugins.sensors.environment.light
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import com.ksensor.core.KSensor
+import com.ksensor.core.PluginStatus
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.context.KSensorContext
 import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.SensorData
+import com.ksensor.core.trackPluginDiagnostics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -27,11 +31,17 @@ class AndroidLightPlugin : LightPlugin {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val flows = ConcurrentHashMap<SensorConfig, Flow<KSensorResponse<SensorData.LightIlluminance>>>()
 
+    @SuppressLint("NewApi")
     override fun observe(config: SensorConfig): Flow<KSensorResponse<SensorData.LightIlluminance>> =
         flows.getOrPut(config) {
             callbackFlow {
                 val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT)
                 if (sensor == null) {
+                    KSensor.reportStatus(
+                        pluginId = id,
+                        status = PluginStatus.UNSUPPORTED,
+                        unsupportedReason = "Ambient light sensor is not available on this device"
+                    )
                     close()
                     return@callbackFlow
                 }
@@ -44,7 +54,9 @@ class AndroidLightPlugin : LightPlugin {
                 }
                 sensorManager.registerListener(listener, sensor, SensorManager.SENSOR_DELAY_NORMAL)
                 awaitClose { sensorManager.unregisterListener(listener) }
-            }.shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
+            }
+                .trackPluginDiagnostics(id)
+                .shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
         }
 }
 

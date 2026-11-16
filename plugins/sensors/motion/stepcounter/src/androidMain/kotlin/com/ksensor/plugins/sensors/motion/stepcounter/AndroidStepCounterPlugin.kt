@@ -1,14 +1,18 @@
 package com.ksensor.plugins.sensors.motion.stepcounter
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import com.ksensor.core.KSensor
+import com.ksensor.core.PluginStatus
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.context.KSensorContext
 import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.SensorData
+import com.ksensor.core.trackPluginDiagnostics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -28,11 +32,17 @@ class AndroidStepCounterPlugin : StepCounterPlugin {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val flows = ConcurrentHashMap<SensorConfig, Flow<KSensorResponse<SensorData.StepCounter>>>()
 
+    @SuppressLint("NewApi")
     override fun observe(config: SensorConfig): Flow<KSensorResponse<SensorData.StepCounter>> =
         flows.getOrPut(config) {
             callbackFlow {
                 val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
                 if (sensor == null) {
+                    KSensor.reportStatus(
+                        pluginId = id,
+                        status = PluginStatus.UNSUPPORTED,
+                        unsupportedReason = "Step counter hardware sensor is not available on this device"
+                    )
                     close()
                     return@callbackFlow
                 }
@@ -48,7 +58,9 @@ class AndroidStepCounterPlugin : StepCounterPlugin {
 
                 sensorManager.registerListener(listener, sensor, SensorManager.SENSOR_DELAY_NORMAL)
                 awaitClose { sensorManager.unregisterListener(listener) }
-            }.shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
+            }
+                .trackPluginDiagnostics(id)
+                .shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
         }
 }
 

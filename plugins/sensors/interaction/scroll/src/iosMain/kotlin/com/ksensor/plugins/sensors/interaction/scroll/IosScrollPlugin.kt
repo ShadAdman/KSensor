@@ -2,6 +2,7 @@ package com.ksensor.plugins.sensors.interaction.scroll
 
 import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.StateData
+import com.ksensor.core.trackPluginDiagnostics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -30,6 +31,7 @@ class IosScrollPlugin : ScrollPlugin {
         }.withIdleDetection()
             .onEach { lastScrollStatus = it }
             .map { KSensorResponse(it) }
+            .trackPluginDiagnostics(id)
             .shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
     }
 

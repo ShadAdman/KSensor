@@ -7,6 +7,7 @@ import com.ksensor.core.context.KSensorContext
 import com.ksensor.core.model.DeviceOrientation
 import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.SensorData
+import com.ksensor.core.trackPluginDiagnostics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -41,7 +42,9 @@ class AndroidOrientationPlugin : OrientationPlugin {
                 }
                 listener.enable()
                 awaitClose { listener.disable() }
-            }.shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
+            }
+                .trackPluginDiagnostics(id)
+                .shareIn(scope, SharingStarted.WhileSubscribed(5000), 1)
         }
 }
 

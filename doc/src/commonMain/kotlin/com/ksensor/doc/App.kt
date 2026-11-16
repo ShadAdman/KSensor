@@ -39,6 +39,7 @@ sealed class DocPage {
     object Intro : DocPage()
     object Permissions : DocPage()
     object LiveBenchmarking : DocPage()
+    object PluginDiagnosticsDoc : DocPage()
     data class Plugin(
         val category: String,
         val name: String,
@@ -70,6 +71,7 @@ fun Sidebar(onPageSelected: (DocPage) -> Unit) {
 
         SidebarSection("Overview", Icons.Default.Home) {
             SidebarItem("Introduction") { onPageSelected(DocPage.Intro) }
+            SidebarItem("Plugin Health & Diagnostics") { onPageSelected(DocPage.PluginDiagnosticsDoc) }
             SidebarItem("Permissions Handling") { onPageSelected(DocPage.Permissions) }
             SidebarItem("Live Benchmarking") { onPageSelected(DocPage.LiveBenchmarking) }
         }
@@ -174,9 +176,93 @@ fun SidebarItem(title: String, onClick: () -> Unit) {
 fun Content(page: DocPage, onPageSelected: (DocPage) -> Unit) {
     when (page) {
         is DocPage.Intro -> IntroPage(onPageSelected)
+        is DocPage.PluginDiagnosticsDoc -> PluginDiagnosticsDocPage()
         is DocPage.Permissions -> PermissionsPage()
         is DocPage.LiveBenchmarking -> LiveBenchmarkingPage()
         is DocPage.Plugin -> PluginPage(page)
+    }
+}
+
+@Composable
+fun PluginDiagnosticsDocPage() {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text("Overview > Diagnostics", color = Color.Gray, fontSize = 14.sp)
+        Text("Plugin Health & Diagnostics API", fontSize = 36.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            "KSensor provides a first-class lifecycle and health reporting API for every plugin. Developers can inspect runtime status without inspecting native logs, diagnose missing permissions, handle unsupported hardware, and monitor production health dashboards.",
+            fontSize = 16.sp,
+            lineHeight = 24.sp
+        )
+
+        Spacer(modifier = Modifier.height(28.dp))
+
+        Text("PluginStatus States", fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Card(elevation = 0.dp, backgroundColor = Color(0xFFF8F9FA), modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text("• READY: Registered, supported, permissions granted, ready to observe", fontWeight = FontWeight.Medium, fontSize = 14.sp, color = Color(0xFF1976D2))
+                Text("• ACTIVE: Actively observing or emitting sensor data / states", fontWeight = FontWeight.Medium, fontSize = 14.sp, color = Color(0xFF2E7D32))
+                Text("• IDLE: Registered but currently idle / not actively observing", fontWeight = FontWeight.Medium, fontSize = 14.sp, color = Color(0xFF0288D1))
+                Text("• BLOCKED_BY_PERMISSION: Missing or denied runtime permissions", fontWeight = FontWeight.Medium, fontSize = 14.sp, color = Color(0xFFED6C02))
+                Text("• UNSUPPORTED: Not supported on current platform type or missing device hardware", fontWeight = FontWeight.Medium, fontSize = 14.sp, color = Color(0xFF757575))
+                Text("• ERROR: Encountered runtime exception during setup or observation stream", fontWeight = FontWeight.Medium, fontSize = 14.sp, color = Color(0xFFD32F2F))
+            }
+        }
+
+        Spacer(modifier = Modifier.height(28.dp))
+
+        Text("PluginDiagnostics Interface", fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            "Every registered plugin exposes detailed health diagnostics via plugin.diagnostics or KSensor.diagnostics(pluginId):",
+            fontSize = 15.sp,
+            lineHeight = 22.sp
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Card(
+            elevation = 0.dp,
+            backgroundColor = Color(0xFF2B2B2B),
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                "interface PluginDiagnostics {\n    val pluginId: PluginId\n    val status: PluginStatus\n    val lastUpdatedTimestamp: Long\n    val lastErrorMessage: String?\n    val unsupportedReason: String?\n    val permissionState: PermissionStatus\n    val isPlatformAvailable: Boolean\n    val isHealthy: Boolean\n}",
+                color = Color(0xFFA9B7C6),
+                modifier = Modifier.padding(16.dp),
+                fontFamily = FontFamily.Monospace,
+                fontSize = 14.sp
+            )
+        }
+
+        Spacer(modifier = Modifier.height(28.dp))
+
+        Text("Observing & Aggregating Diagnostics", fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            "Access real-time diagnostics snapshots, state flows, status filtering, or attach global sinks:",
+            fontSize = 15.sp,
+            lineHeight = 22.sp
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Card(
+            elevation = 0.dp,
+            backgroundColor = Color(0xFF2B2B2B),
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                "// 1. Observe real-time diagnostics map via StateFlow\nval diagnosticsMap by KSensor.diagnosticsFlow.collectAsState()\n\n// 2. Query snapshot for a specific plugin or filter by status\nval locationDiag = KSensor.diagnostics(PluginId.LOCATION)\nval blockedPlugins = KSensor.filterStatus(PluginStatus.BLOCKED_BY_PERMISSION)\n\n// 3. Register a global observer or sink\nKSensor.addDiagnosticsObserver { diag ->\n    println(\"[\${diag.pluginId}] Status changed: \${diag.status}\")\n}\n\n// 4. Re-check permissions and platform availability at runtime\nKSensor.refreshDiagnostics()",
+                color = Color(0xFFA9B7C6),
+                modifier = Modifier.padding(16.dp),
+                fontFamily = FontFamily.Monospace,
+                fontSize = 14.sp
+            )
+        }
     }
 }
 

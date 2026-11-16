@@ -1,6 +1,7 @@
 package com.ksensor.plugins.sensors.interaction
 
 import com.ksensor.core.model.StateData
+import com.ksensor.plugins.sensors.interaction.scroll.withIdleDetection
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch

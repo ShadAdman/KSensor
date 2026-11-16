@@ -3,6 +3,7 @@ package com.ksensor.plugins.sensors.positioning.heading
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.SensorData
+import com.ksensor.core.trackPluginDiagnostics
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -58,7 +59,7 @@ class IosHeadingPlugin : HeadingPlugin {
             headingManager.stopUpdatingLocation()
             headingManager.stopUpdatingHeading()
         }
-    }
+    }.trackPluginDiagnostics(id)
 }
 
 actual fun createHeadingPlugin(): HeadingPlugin = IosHeadingPlugin()

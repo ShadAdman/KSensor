@@ -3,6 +3,7 @@ package com.ksensor.plugins.sensors.environment.noise
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.SensorData
+import com.ksensor.core.trackPluginDiagnostics
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -62,6 +63,7 @@ class IosNoisePlugin : NoisePlugin {
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            throw e
         } finally {
             recorder?.stop()
             recorder?.deleteRecording()
@@ -71,7 +73,7 @@ class IosNoisePlugin : NoisePlugin {
                 // Ignore
             }
         }
-    }
+    }.trackPluginDiagnostics(id)
 }
 
 actual fun createNoisePlugin(): NoisePlugin = IosNoisePlugin()

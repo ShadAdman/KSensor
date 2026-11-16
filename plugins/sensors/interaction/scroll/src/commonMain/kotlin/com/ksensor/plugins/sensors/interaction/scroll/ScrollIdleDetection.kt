@@ -6,10 +6,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.transformLatest
 
-internal const val SCROLL_IDLE_TIMEOUT_MS = 300L
+const val SCROLL_IDLE_TIMEOUT_MS = 300L
 
 @OptIn(ExperimentalCoroutinesApi::class)
-internal fun Flow<StateData.ScrollStatus>.withIdleDetection(
+fun Flow<StateData.ScrollStatus>.withIdleDetection(
     idleTimeoutMs: Long = SCROLL_IDLE_TIMEOUT_MS
 ): Flow<StateData.ScrollStatus> = transformLatest { status ->
     emit(status.copy(isScrolling = true))

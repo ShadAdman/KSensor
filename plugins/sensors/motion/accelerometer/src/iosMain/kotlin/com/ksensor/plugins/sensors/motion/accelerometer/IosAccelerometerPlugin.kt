@@ -1,9 +1,12 @@
 package com.ksensor.plugins.sensors.motion.accelerometer
 
+import com.ksensor.core.KSensor
+import com.ksensor.core.PluginStatus
 import com.ksensor.core.SensorConfig
 import com.ksensor.core.model.KSensorResponse
 import com.ksensor.core.model.SensorData
 import com.ksensor.core.model.Vector3
+import com.ksensor.core.trackPluginDiagnostics
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
 import kotlinx.coroutines.channels.awaitClose
@@ -18,6 +21,11 @@ class IosAccelerometerPlugin : AccelerometerPlugin {
     @OptIn(ExperimentalForeignApi::class)
     override fun observe(config: SensorConfig): Flow<KSensorResponse<SensorData.Accelerometer>> = callbackFlow {
         if (!motionManager.accelerometerAvailable) {
+            KSensor.reportStatus(
+                pluginId = id,
+                status = PluginStatus.UNSUPPORTED,
+                unsupportedReason = "Accelerometer hardware is not available on this iOS device"
+            )
             close()
             return@callbackFlow
         }
@@ -31,7 +39,7 @@ class IosAccelerometerPlugin : AccelerometerPlugin {
         }
 
         awaitClose { motionManager.stopAccelerometerUpdates() }
-    }
+    }.trackPluginDiagnostics(id)
 }
 
 actual fun createAccelerometerPlugin(): AccelerometerPlugin = IosAccelerometerPlugin()

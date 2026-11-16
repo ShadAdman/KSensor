@@ -36,6 +36,14 @@ class FakeBluetoothPlugin : BluetoothPlugin {
             MutableSharedFlow<KSensorResponse<StateData.BleDiscoversStatus>>().asTrackedFlow("discoveries")
     }
 
+    override fun audioDevices(): StatePlugin<StateData.BleConnectionStatus> = object : StatePlugin<StateData.BleConnectionStatus> {
+        override val id: PluginId = PluginId.BLUETOOTH
+        override val requiredPermissions: List<Permission> = emptyList()
+        override val currentState: KSensorResponse<StateData.BleConnectionStatus> get() = TODO()
+        override fun observe(): Flow<KSensorResponse<StateData.BleConnectionStatus>> = 
+            MutableSharedFlow<KSensorResponse<StateData.BleConnectionStatus>>().asTrackedFlow("audioDevices")
+    }
+
     private fun <T> Flow<T>.asTrackedFlow(name: String): Flow<T> {
         return this.onStart { activeObservers.add(name) }
             .onCompletion { activeObservers.remove(name) }
