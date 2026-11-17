@@ -30,6 +30,7 @@ import com.ksensor.sample.system.*
 import com.ksensor.sample.network.*
 import com.ksensor.sample.interaction.*
 import com.ksensor.sample.lifecycle.*
+import com.ksensor.sample.fused.*
 
 import com.ksensor.plugins.sensors.positioning.createPositioningPlugin
 import com.ksensor.plugins.sensors.motion.createMotionPlugin
@@ -41,6 +42,7 @@ import com.ksensor.sample.diagnostics.DiagnosticsSample
 import com.ksensor.plugins.states.network.createNetworkPlugin
 import com.ksensor.plugins.sensors.interaction.createInteractionPlugin
 import com.ksensor.plugins.states.lifecycle.createLifecyclePlugin
+import com.ksensor.plugins.sensors.fused.createFusedSensorPlugin
 
 sealed class Screen {
     object Catalog : Screen()
@@ -270,6 +272,26 @@ fun App() {
                         },
                         observers = listOf(
                             ObserverSample("App Visibility", "Observe foreground/background app visibility") { AppVisibilitySample() }
+                        )
+                    ),
+                    PluginCatalog(
+                        id = PluginId.FUSED_SENSOR,
+                        title = "Fused Sensors Plugin",
+                        description = "High-level fused sensor capabilities (activity, posture, orientation, context summary).",
+                        category = CatalogCategory.SENSORS,
+                        capabilities = listOf("Activity", "Posture", "Orientation", "ContextSummary"),
+                        dataTypeExamples = listOf(
+                            "FusedActivity(result=WALKING, confidence=HIGH)",
+                            "FusedPosture(result=IN_HAND, confidence=HIGH)",
+                            "FusedContextSummary(environmentState=INDOOR, motionState=STILL)"
+                        ),
+                        permissionNotes = "Requires ACTIVITY_RECOGNITION, LOCATION, and RECORD_AUDIO for full multi-source sensor fusion.",
+                        getOrCreatePlugin = {
+                            KSensor.get<com.ksensor.plugins.sensors.fused.FusedSensorPlugin>(PluginId.FUSED_SENSOR)
+                                ?: createFusedSensorPlugin().also { KSensor.register(it) }
+                        },
+                        observers = listOf(
+                            ObserverSample("Fused Showcase", "Activity, Posture, Spatial Orientation & Context Summary") { FusedSensorShowcase() }
                         )
                     )
                 )

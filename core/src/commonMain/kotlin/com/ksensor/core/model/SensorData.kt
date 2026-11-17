@@ -22,7 +22,11 @@ enum class SensorType {
     LIGHT,
     TOUCH_GESTURES,
     HEADING,
-    HEART_RATE
+    HEART_RATE,
+    FUSED_ACTIVITY,
+    FUSED_POSTURE,
+    FUSED_ORIENTATION,
+    FUSED_CONTEXT
 }
 
 sealed class SensorData {
@@ -85,4 +89,61 @@ sealed class SensorData {
         val quality: Float = 1.0f,
         val timestamp: Long = 0L
     ) : SensorData()
+
+    // Fused Sensor Outputs
+    enum class FusedActivityType {
+        STATIONARY, WALKING, RUNNING, CYCLING, AUTOMOTIVE, UNKNOWN
+    }
+    data class FusedActivity(
+        override val result: FusedActivityType,
+        override val confidence: FusedConfidence,
+        override val sources: List<FusedSourceInfo>,
+        override val requiredSources: List<PluginId> = listOf(
+            PluginId.ACCELEROMETER, PluginId.GYROSCOPE, PluginId.STEP_COUNTER, PluginId.MOTION_DETECTOR
+        )
+    ) : SensorData(), FusedSensorOutput<FusedActivityType>
+
+    enum class FusedPostureType {
+        SITTING, STANDING, LYING_DOWN, IN_HAND, IN_POCKET, AT_EAR, UNKNOWN
+    }
+    data class FusedPosture(
+        override val result: FusedPostureType,
+        override val confidence: FusedConfidence,
+        override val sources: List<FusedSourceInfo>,
+        override val requiredSources: List<PluginId> = listOf(
+            PluginId.ACCELEROMETER, PluginId.GYROSCOPE, PluginId.PROXIMITY, PluginId.ORIENTATION
+        )
+    ) : SensorData(), FusedSensorOutput<FusedPostureType>
+
+    data class FusedOrientation(
+        val orientation: DeviceOrientation,
+        val pitchDegrees: Float,
+        val rollDegrees: Float,
+        val yawDegrees: Float,
+        val isStable: Boolean,
+        override val confidence: FusedConfidence,
+        override val sources: List<FusedSourceInfo>,
+        override val requiredSources: List<PluginId> = listOf(
+            PluginId.ACCELEROMETER, PluginId.GYROSCOPE, PluginId.MAGNETOMETER, PluginId.ORIENTATION
+        )
+    ) : SensorData(), FusedSensorOutput<DeviceOrientation> {
+        override val result: DeviceOrientation get() = orientation
+    }
+
+    enum class FusedEnvironmentState { INDOOR, OUTDOOR, IN_VEHICLE, ELEVATED, UNKNOWN }
+    enum class FusedMotionState { STILL, IN_MOTION, HIGH_SPEED, UNKNOWN }
+
+    data class FusedContextSummary(
+        val environmentState: FusedEnvironmentState,
+        val motionState: FusedMotionState,
+        val isIndoorEstimate: Boolean,
+        val noiseLevelSummary: String,
+        override val confidence: FusedConfidence,
+        override val sources: List<FusedSourceInfo>,
+        override val requiredSources: List<PluginId> = listOf(
+            PluginId.MOTION_DETECTOR, PluginId.LOCATION, PluginId.LIGHT, PluginId.BAROMETER, PluginId.NOISE
+        )
+    ) : SensorData(), FusedSensorOutput<FusedEnvironmentState> {
+        override val result: FusedEnvironmentState get() = environmentState
+    }
 }

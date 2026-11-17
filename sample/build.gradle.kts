@@ -41,6 +41,7 @@ kotlin {
             implementation(projects.plugins.states.network)
             implementation(projects.plugins.sensors.interaction)
             implementation(projects.plugins.states.lifecycle)
+            implementation(projects.plugins.sensors.fused)
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)

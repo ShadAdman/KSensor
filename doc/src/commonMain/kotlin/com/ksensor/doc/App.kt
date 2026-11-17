@@ -78,7 +78,7 @@ fun Sidebar(onPageSelected: (DocPage) -> Unit) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        SidebarSection("Sensors", Icons.Default.Sensors) {
+        SidebarSection("Sensors", Icons.Default.Sensors, titleColor = Color(0xFF3B82F6)) {
             SidebarSubSection("Environment") {
                 SidebarItem("Barometer") { onPageSelected(DocPage.Plugin("Sensors", "Barometer", "Measures the ambient air pressure in hPa (millibars).", "Pressure (Float)", "KSensor.get<EnvironmentPlugin>(PluginId.ENVIRONMENT)?.barometer()?.collect { response -> \n    val pressure = response.data.pressure\n}")) }
                 SidebarItem("Light") { onPageSelected(DocPage.Plugin("Sensors", "Light", "Measures the ambient light level (illuminance) in lx.", "Illuminance (Float)", "KSensor.get<EnvironmentPlugin>(PluginId.ENVIRONMENT)?.light()?.collect { response -> \n    val lux = response.data.illuminance\n}")) }
@@ -108,7 +108,7 @@ fun Sidebar(onPageSelected: (DocPage) -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        SidebarSection("States", Icons.Default.Info) {
+        SidebarSection("States", Icons.Default.Info, titleColor = Color(0xFF10B981)) {
             SidebarSubSection("Network") {
                 SidebarItem("Connectivity") { onPageSelected(DocPage.Plugin("States", "Connectivity", "Monitors the network connectivity status.", "Status (Boolean)", "KSensor.get<NetworkPlugin>(PluginId.NETWORK)?.connectivity()?.observe()?.collect { status -> \n    val isConnected = status.isConnected\n}")) }
                 SidebarItem("Active Network") { onPageSelected(DocPage.Plugin("States", "Active Network", "Provides information about the currently active network (WiFi, Cellular, etc.).", "Network Type (Enum)", "KSensor.get<NetworkPlugin>(PluginId.NETWORK)?.activeNetwork()?.observe()?.collect { network -> \n    val type = network.type\n}")) }
@@ -131,16 +131,32 @@ fun Sidebar(onPageSelected: (DocPage) -> Unit) {
                 SidebarItem("App Visibility") { onPageSelected(DocPage.Plugin("States", "App Visibility", "Monitors whether the app is in the foreground or background.", "Status (Enum)", "KSensor.get<LifecyclePlugin>(PluginId.LIFECYCLE)?.appVisibility()?.observe()?.collect { status -> \n    // handle visibility\n}")) }
             }
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        SidebarSection("Fused Sensors", Icons.Default.AutoAwesome, titleColor = Color(0xFF8B5CF6)) {
+            SidebarSubSection("Composite Features") {
+                SidebarItem("Activity Classification") { onPageSelected(DocPage.Plugin("Fused Sensors", "Activity Classification", "Combines raw Motion Detector, Accelerometer, Gyroscope, and Step Counter into user activity (Walking, Running, Cycling, Automotive, Stationary) with dynamic confidence scoring and source breakdown.", "FusedActivity(result: Enum, confidence: FusedConfidence, sources: List<FusedSourceInfo>)", "KSensor.get<FusedSensorPlugin>(PluginId.FUSED_SENSOR)?.activityClassification()?.collect { response -> \n    val activity = response.data.result\n    val score = response.data.confidence.score\n}", "android.permission.ACTIVITY_RECOGNITION", "NSMotionUsageDescription")) }
+                SidebarItem("Posture Estimation") { onPageSelected(DocPage.Plugin("Fused Sensors", "Posture Estimation", "Combines Accelerometer, Gyroscope, Proximity, and Orientation streams to estimate device posture (In Hand, At Ear, In Pocket, Lying Down, Sitting, Standing).", "FusedPosture(result: Enum, confidence: FusedConfidence, sources: List<FusedSourceInfo>)", "KSensor.get<FusedSensorPlugin>(PluginId.FUSED_SENSOR)?.postureEstimation()?.collect { response -> \n    val posture = response.data.result\n}")) }
+                SidebarItem("Fused Orientation") { onPageSelected(DocPage.Plugin("Fused Sensors", "Fused Orientation", "Combines Accelerometer, Gyroscope, Magnetometer, and System Orientation for 3D rotation angles (Pitch, Roll, Yaw), spatial stability, and confidence.", "FusedOrientation(orientation: DeviceOrientation, pitchDegrees: Float, rollDegrees: Float, yawDegrees: Float, isStable: Boolean, confidence: FusedConfidence)", "KSensor.get<FusedSensorPlugin>(PluginId.FUSED_SENSOR)?.fusedOrientation()?.collect { response -> \n    val pitch = response.data.pitchDegrees\n    val roll = response.data.rollDegrees\n}")) }
+                SidebarItem("Context Summary") { onPageSelected(DocPage.Plugin("Fused Sensors", "Context Summary", "Combines Motion Detector, Location, Light, Barometer, and Noise sensors into environmental state (Indoor/Outdoor, In Vehicle, Elevated), motion state, and noise summary.", "FusedContextSummary(environmentState: Enum, motionState: Enum, isIndoorEstimate: Boolean, noiseLevelSummary: String, confidence: FusedConfidence)", "KSensor.get<FusedSensorPlugin>(PluginId.FUSED_SENSOR)?.contextSummary()?.collect { response -> \n    val env = response.data.environmentState\n    val noise = response.data.noiseLevelSummary\n}", "android.permission.LOCATION\nandroid.permission.RECORD_AUDIO", "NSLocationWhenInUseUsageDescription\nNSMicrophoneUsageDescription")) }
+            }
+        }
     }
 }
 
 @Composable
-fun SidebarSection(title: String, icon: ImageVector, content: @Composable ColumnScope.() -> Unit) {
+fun SidebarSection(
+    title: String,
+    icon: ImageVector,
+    titleColor: Color = Color.Gray,
+    content: @Composable ColumnScope.() -> Unit
+) {
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(20.dp))
+            Icon(icon, contentDescription = null, tint = titleColor, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(8.dp))
-            Text(title, fontWeight = FontWeight.Bold, color = Color.Gray, fontSize = 14.sp)
+            Text(title, fontWeight = FontWeight.Bold, color = titleColor, fontSize = 14.sp)
         }
         Column(modifier = Modifier.padding(start = 12.dp), content = content)
     }
