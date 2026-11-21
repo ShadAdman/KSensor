@@ -135,9 +135,11 @@ object KSensor {
 
 ---
 
-# Sensors Plugins
+<h1 align="center" style="color: #3B82F6;">📡 Sensors Plugins</h1>
 
-These plugins provide access to hardware sensors for monitoring movement, environment, and health.
+<p align="center"><i>Plugins that provide direct access to hardware sensors for movement, environment, positioning, interaction, and health metrics.</i></p>
+
+---
 
 ## Motion Sensors Plugin
 
@@ -311,9 +313,11 @@ PPG is a non-invasive method that uses a light source (the phone's flash) and a 
 
 ---
 
-# States Plugins
+<h1 align="center" style="color: #10B981;">⚡ States Plugins</h1>
 
-These plugins provide monitoring for various device system and connectivity states.
+<p align="center"><i>Plugins for monitoring system states, connectivity, hardware interfaces, and application lifecycle events.</i></p>
+
+---
 
 ## Network States Plugin
 
@@ -427,6 +431,118 @@ Required Permissions: None
 Data Models (Wrapped in `KSensorResponse`):
 
 - App Visibility: `AppVisibilityStatus(isAppVisible: Boolean)`
+
+---
+
+<h1 align="center" style="color: #8B5CF6;">🔮 Fused Sensors Plugins</h1>
+
+<p align="center"><i>Higher-level composite plugins that combine multiple raw sensor streams into practical, app-level capabilities with dynamic confidence scoring, quality metrics, and source tracking.</i></p>
+
+---
+
+## Fused Sensor Overview & Architecture
+
+KSensor's Fused Sensor layer sits on top of low-level sensor plugins to produce rich, combined app-level telemetry (motion activity classification, physical posture estimation, 3D spatial orientation confidence, and environmental context summaries) without requiring manual stream composition.
+
+Dependencies:
+```kotlin
+// Option A: Domain Convenience Facade (Includes all fused plugins)
+implementation("io.github.shadadman:ksensor-sensors-fused:version")
+
+// Option B: Atomic Micro-Modules (Ultra-Small Footprint - Choose only what you need!)
+implementation("io.github.shadadman:ksensor-sensor-fused-activity:version")
+implementation("io.github.shadadman:ksensor-sensor-fused-posture:version")
+implementation("io.github.shadadman:ksensor-sensor-fused-orientationconfidence:version")
+implementation("io.github.shadadman:ksensor-sensor-fused-context:version")
+```
+
+### Common Fused Model & Confidence Engine
+Every fused feature emits a wrapper containing quantitative & qualitative confidence scoring and a breakdown of all contributing active/inactive sensor sources:
+
+- **`FusedConfidence`**:
+  - `score`: Quantitative confidence value from `0.0` (0%) to `1.0` (100%).
+  - `level`: Categorical confidence level (`LOW`, `MEDIUM`, `HIGH`, `UNKNOWN`).
+  - `quality`: Metric indicating data freshness and accuracy (`0.0` to `1.0`).
+  - `explanation`: Human-readable description of the confidence calculation.
+- **`FusedSourceInfo`**:
+  - `pluginId`: Unique identifier of the contributing sensor source (`ACCELEROMETER`, `GYROSCOPE`, `LIGHT`, `LOCATION`, etc.).
+  - `isAvailable`: Whether the source plugin is active and emitting telemetry on the current hardware/platform.
+  - `weight`: Contribution weight factor (`0.0` to `1.0`).
+  - `lastUpdated`: Timestamp of the latest sample received from this source.
+
+---
+
+### Activity Classification Plugin
+
+Combines Motion Detector, Accelerometer, Gyroscope, and Step Counter raw streams to classify user motion activity.
+
+- **Data Model**: `FusedActivity(result: FusedActivityType, confidence: FusedConfidence, sources: List<FusedSourceInfo>)`
+- **Activities**: `STATIONARY`, `WALKING`, `RUNNING`, `CYCLING`, `AUTOMOTIVE`, `UNKNOWN`
+- **Required Permissions**: Android `ACTIVITY_RECOGNITION`, iOS `NSMotionUsageDescription`
+
+```kotlin
+val fusedPlugin = createFusedSensorPlugin()
+fusedPlugin.activityClassification().collect { response ->
+    val activity = response.data.result
+    val confidence = response.data.confidence
+    println("Current activity: $activity (Confidence: ${(confidence.score * 100).toInt()}%, Level: ${confidence.level})")
+    response.data.sources.forEach { source ->
+        println("  Source ${source.pluginId}: available=${source.isAvailable}, weight=${source.weight}")
+    }
+}
+```
+
+### Posture Estimation Plugin
+
+Combines Accelerometer, Gyroscope, Proximity, and System Orientation streams to estimate physical device posture.
+
+- **Data Model**: `FusedPosture(result: FusedPostureType, confidence: FusedConfidence, sources: List<FusedSourceInfo>)`
+- **Postures**: `IN_HAND`, `AT_EAR`, `IN_POCKET`, `LYING_DOWN`, `SITTING`, `STANDING`, `UNKNOWN`
+- **Required Permissions**: None
+
+```kotlin
+val fusedPlugin = createFusedSensorPlugin()
+fusedPlugin.postureEstimation().collect { response ->
+    val posture = response.data.result
+    println("Device posture: $posture")
+}
+```
+
+### Fused Orientation Plugin
+
+Combines Accelerometer, Gyroscope, Magnetometer, and System Orientation streams to calculate 3D spatial rotation angles (pitch, roll, yaw), orientation classification, and spatial stability.
+
+- **Data Model**: `FusedOrientation(orientation: DeviceOrientation, pitchDegrees: Float, rollDegrees: Float, yawDegrees: Float, isStable: Boolean, confidence: FusedConfidence, sources: List<FusedSourceInfo>)`
+- **Required Permissions**: None
+
+```kotlin
+val fusedPlugin = createFusedSensorPlugin()
+fusedPlugin.fusedOrientation().collect { response ->
+    val pitch = response.data.pitchDegrees
+    val roll = response.data.rollDegrees
+    val isStable = response.data.isStable
+    println("Spatial Pitch: $pitch°, Roll: $roll° (Stable: $isStable)")
+}
+```
+
+### Context Summary Plugin
+
+Combines Motion Detector, Location, Light, Barometer, and Ambient Noise sensors into a unified environmental & contextual summary.
+
+- **Data Model**: `FusedContextSummary(environmentState: FusedEnvironmentState, motionState: FusedMotionState, isIndoorEstimate: Boolean, noiseLevelSummary: String, confidence: FusedConfidence, sources: List<FusedSourceInfo>)`
+- **Environment States**: `INDOOR`, `OUTDOOR`, `IN_VEHICLE`, `ELEVATED`, `UNKNOWN`
+- **Motion States**: `STILL`, `IN_MOTION`, `HIGH_SPEED`, `UNKNOWN`
+- **Required Permissions**: Android `ACCESS_FINE_LOCATION`, `RECORD_AUDIO`; iOS `NSLocationWhenInUseUsageDescription`, `NSMicrophoneUsageDescription`
+
+```kotlin
+val fusedPlugin = createFusedSensorPlugin()
+fusedPlugin.contextSummary().collect { response ->
+    val env = response.data.environmentState
+    val noise = response.data.noiseLevelSummary
+    val isIndoor = response.data.isIndoorEstimate
+    println("Environment: $env | Noise: $noise | Indoor: $isIndoor")
+}
+```
 
 ---
 

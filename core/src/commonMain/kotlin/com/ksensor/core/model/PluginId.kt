@@ -32,6 +32,13 @@ enum class PluginId {
     SCROLL_STATUS,
     HEART_RATE,
 
+    // Fused Sensors
+    FUSED_SENSOR,
+    FUSED_ACTIVITY,
+    FUSED_POSTURE,
+    FUSED_ORIENTATION,
+    FUSED_CONTEXT,
+
     // Atomic States
     BLE_CONNECTIONS,
     BLE_DISCOVERIES,

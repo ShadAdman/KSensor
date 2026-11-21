@@ -53,6 +53,12 @@ include(":plugins:sensors:interaction:scroll")
 
 include(":plugins:sensors:health")
 include(":plugins:sensors:health:heart")
+
+include(":plugins:sensors:fused")
+include(":plugins:sensors:fused:activity")
+include(":plugins:sensors:fused:posture")
+include(":plugins:sensors:fused:orientationconfidence")
+include(":plugins:sensors:fused:context")
 include(":plugins:states:lifecycle")
 include(":plugins:states:lifecycle:appvisibility")
 include(":plugins:states:network")
