@@ -452,8 +452,8 @@ implementation("io.github.shadadman:ksensor-sensors-fused:version")
 // Option B: Atomic Micro-Modules (Ultra-Small Footprint - Choose only what you need!)
 implementation("io.github.shadadman:ksensor-sensor-fused-activity:version")
 implementation("io.github.shadadman:ksensor-sensor-fused-posture:version")
-implementation("io.github.shadadman:ksensor-sensor-fused-orientationconfidence:version")
-implementation("io.github.shadadman:ksensor-sensor-fused-context:version")
+implementation("io.github.shadadman:ksensor-sensor-fused-3dorientation:version")
+implementation("io.github.shadadman:ksensor-sensor-fused-surrounding:version")
 ```
 
 ### Common Fused Model & Confidence Engine
@@ -508,16 +508,16 @@ fusedPlugin.postureEstimation().collect { response ->
 }
 ```
 
-### Fused Orientation Plugin
+### Fused 3D Orientation Plugin
 
 Combines Accelerometer, Gyroscope, Magnetometer, and System Orientation streams to calculate 3D spatial rotation angles (pitch, roll, yaw), orientation classification, and spatial stability.
 
-- **Data Model**: `FusedOrientation(orientation: DeviceOrientation, pitchDegrees: Float, rollDegrees: Float, yawDegrees: Float, isStable: Boolean, confidence: FusedConfidence, sources: List<FusedSourceInfo>)`
+- **Data Model**: `Fused3DOrientation(orientation: DeviceOrientation, pitchDegrees: Float, rollDegrees: Float, yawDegrees: Float, isStable: Boolean, confidence: FusedConfidence, sources: List<FusedSourceInfo>)`
 - **Required Permissions**: None
 
 ```kotlin
 val fusedPlugin = createFusedSensorPlugin()
-fusedPlugin.fusedOrientation().collect { response ->
+fusedPlugin.fused3DOrientation().collect { response ->
     val pitch = response.data.pitchDegrees
     val roll = response.data.rollDegrees
     val isStable = response.data.isStable
@@ -525,18 +525,18 @@ fusedPlugin.fusedOrientation().collect { response ->
 }
 ```
 
-### Context Summary Plugin
+### Surrounding Plugin
 
-Combines Motion Detector, Location, Light, Barometer, and Ambient Noise sensors into a unified environmental & contextual summary.
+Combines Motion Detector, Location, Light, Barometer, and Ambient Noise sensors into a unified physical surroundings summary.
 
-- **Data Model**: `FusedContextSummary(environmentState: FusedEnvironmentState, motionState: FusedMotionState, isIndoorEstimate: Boolean, noiseLevelSummary: String, confidence: FusedConfidence, sources: List<FusedSourceInfo>)`
+- **Data Model**: `FusedSurrounding(environmentState: FusedEnvironmentState, motionState: FusedMotionState, isIndoorEstimate: Boolean, noiseLevelSummary: String, confidence: FusedConfidence, sources: List<FusedSourceInfo>)`
 - **Environment States**: `INDOOR`, `OUTDOOR`, `IN_VEHICLE`, `ELEVATED`, `UNKNOWN`
 - **Motion States**: `STILL`, `IN_MOTION`, `HIGH_SPEED`, `UNKNOWN`
 - **Required Permissions**: Android `ACCESS_FINE_LOCATION`, `RECORD_AUDIO`; iOS `NSLocationWhenInUseUsageDescription`, `NSMicrophoneUsageDescription`
 
 ```kotlin
 val fusedPlugin = createFusedSensorPlugin()
-fusedPlugin.contextSummary().collect { response ->
+fusedPlugin.fusedSurrounding().collect { response ->
     val env = response.data.environmentState
     val noise = response.data.noiseLevelSummary
     val isIndoor = response.data.isIndoorEstimate

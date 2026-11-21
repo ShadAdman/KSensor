@@ -25,8 +25,8 @@ enum class SensorType {
     HEART_RATE,
     FUSED_ACTIVITY,
     FUSED_POSTURE,
-    FUSED_ORIENTATION,
-    FUSED_CONTEXT
+    FUSED_3D_ORIENTATION,
+    FUSED_SURROUNDING
 }
 
 sealed class SensorData {
@@ -115,7 +115,7 @@ sealed class SensorData {
         )
     ) : SensorData(), FusedSensorOutput<FusedPostureType>
 
-    data class FusedOrientation(
+    data class Fused3DOrientation(
         val orientation: DeviceOrientation,
         val pitchDegrees: Float,
         val rollDegrees: Float,
@@ -133,7 +133,7 @@ sealed class SensorData {
     enum class FusedEnvironmentState { INDOOR, OUTDOOR, IN_VEHICLE, ELEVATED, UNKNOWN }
     enum class FusedMotionState { STILL, IN_MOTION, HIGH_SPEED, UNKNOWN }
 
-    data class FusedContextSummary(
+    data class FusedSurrounding(
         val environmentState: FusedEnvironmentState,
         val motionState: FusedMotionState,
         val isIndoorEstimate: Boolean,

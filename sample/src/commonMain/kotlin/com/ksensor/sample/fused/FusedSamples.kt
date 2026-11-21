@@ -23,8 +23,8 @@ fun FusedSensorShowcase() {
 
     val activityState by plugin.activityClassification().collectAsState(null)
     val postureState by plugin.postureEstimation().collectAsState(null)
-    val orientationState by plugin.fusedOrientation().collectAsState(null)
-    val contextState by plugin.contextSummary().collectAsState(null)
+    val orientationState by plugin.fused3DOrientation().collectAsState(null)
+    val surroundingState by plugin.fusedSurrounding().collectAsState(null)
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -100,15 +100,15 @@ fun FusedSensorShowcase() {
             }
         }
 
-        // 4. Context Summary
+        // 4. Device Surroundings Summary
         item {
             Card(elevation = 4.dp, modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Environmental Context Summary", style = MaterialTheme.typography.h6)
+                    Text("Device Surroundings Summary", style = MaterialTheme.typography.h6)
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    if (contextState != null) {
-                        val data = contextState!!.data
+                    if (surroundingState != null) {
+                        val data = surroundingState!!.data
                         Text("Environment: ${data.environmentState}")
                         Text("Motion State: ${data.motionState}")
                         Text("Indoor Estimate: ${if (data.isIndoorEstimate) "Yes" else "No"}")
@@ -117,7 +117,7 @@ fun FusedSensorShowcase() {
                         Spacer(modifier = Modifier.height(8.dp))
                         SourcesList(data.sources)
                     } else {
-                        Text("Initializing context summary...")
+                        Text("Initializing surroundings summary...")
                     }
                 }
             }

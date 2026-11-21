@@ -26,8 +26,8 @@ kotlin {
             api(projects.core)
             api(project(":plugins:sensors:fused:activity"))
             api(project(":plugins:sensors:fused:posture"))
-            api(project(":plugins:sensors:fused:orientationconfidence"))
-            api(project(":plugins:sensors:fused:context"))
+            api(project(":plugins:sensors:fused:threedorientation"))
+            api(project(":plugins:sensors:fused:surrounding"))
             implementation(libs.kotlinx.coroutines.core)
         }
         commonTest.dependencies {

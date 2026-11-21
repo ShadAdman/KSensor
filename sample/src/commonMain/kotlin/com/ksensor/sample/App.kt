@@ -279,11 +279,12 @@ fun App() {
                         title = "Fused Sensors Plugin",
                         description = "High-level fused sensor capabilities (activity, posture, orientation, context summary).",
                         category = CatalogCategory.SENSORS,
-                        capabilities = listOf("Activity", "Posture", "Orientation", "ContextSummary"),
+                        capabilities = listOf("Activity", "Posture", "3DOrientation", "Surrounding"),
                         dataTypeExamples = listOf(
                             "FusedActivity(result=WALKING, confidence=HIGH)",
                             "FusedPosture(result=IN_HAND, confidence=HIGH)",
-                            "FusedContextSummary(environmentState=INDOOR, motionState=STILL)"
+                            "Fused3DOrientation(pitchDegrees=12.5f, rollDegrees=-3.2f, isStable=true)",
+                            "FusedSurrounding(environmentState=INDOOR, motionState=STILL)"
                         ),
                         permissionNotes = "Requires ACTIVITY_RECOGNITION, LOCATION, and RECORD_AUDIO for full multi-source sensor fusion.",
                         getOrCreatePlugin = {
