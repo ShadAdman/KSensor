@@ -42,6 +42,7 @@ import com.ksensor.sample.diagnostics.DiagnosticsSample
 import com.ksensor.plugins.states.network.createNetworkPlugin
 import com.ksensor.plugins.sensors.interaction.createInteractionPlugin
 import com.ksensor.plugins.states.lifecycle.createLifecyclePlugin
+import com.ksensor.plugins.sensors.
 import com.ksensor.plugins.sensors.fused.createFusedSensorPlugin
 
 sealed class Screen {
@@ -288,7 +289,7 @@ fun App() {
                         ),
                         permissionNotes = "Requires ACTIVITY_RECOGNITION, LOCATION, and RECORD_AUDIO for full multi-source sensor fusion.",
                         getOrCreatePlugin = {
-                            KSensor.get<com.ksensor.plugins.sensors.fused.FusedSensorPlugin>(PluginId.FUSED_SENSOR)
+                            KSensor.get<FusedSensorPlugin>(PluginId.FUSED_SENSOR)
                                 ?: createFusedSensorPlugin().also { KSensor.register(it) }
                         },
                         observers = listOf(
