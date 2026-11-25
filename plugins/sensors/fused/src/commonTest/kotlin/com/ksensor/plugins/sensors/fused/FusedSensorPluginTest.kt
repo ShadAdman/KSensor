@@ -25,10 +25,10 @@ class FusedSensorPluginTest {
         val posture = plugin.postureEstimation().first()
         assertNotNull(posture.data)
 
-        val orientation = plugin.fusedOrientation().first()
+        val orientation = plugin.fused3DOrientation().first()
         assertNotNull(orientation.data)
 
-        val context = plugin.contextSummary().first()
-        assertNotNull(context.data)
+        val surrounding = plugin.fusedSurrounding().first()
+        assertNotNull(surrounding.data)
     }
 }

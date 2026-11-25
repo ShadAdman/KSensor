@@ -14,6 +14,9 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.9.0"
+}
 
 dependencyResolutionManagement {
     repositories {
@@ -57,8 +60,8 @@ include(":plugins:sensors:health:heart")
 include(":plugins:sensors:fused")
 include(":plugins:sensors:fused:activity")
 include(":plugins:sensors:fused:posture")
-include(":plugins:sensors:fused:orientationconfidence")
-include(":plugins:sensors:fused:context")
+include(":plugins:sensors:fused:threedorientation")
+include(":plugins:sensors:fused:surrounding")
 include(":plugins:states:lifecycle")
 include(":plugins:states:lifecycle:appvisibility")
 include(":plugins:states:network")

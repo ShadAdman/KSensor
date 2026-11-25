@@ -2,9 +2,11 @@ package com.ksensor.plugins.sensors.health.heart
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Build
 import android.util.Log
 import android.util.Size
 import androidx.annotation.OptIn
+import androidx.annotation.RequiresApi
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
@@ -36,6 +38,7 @@ class CameraHeartRateMonitor(private val context: Context) : HeartRateMonitor {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     @SuppressLint("UnsafeOptInUsageError")
     override fun start(): Flow<KSensorResponse<SensorData.HeartRate>> = callbackFlow {
         if (isRunning.getAndSet(true)) {
@@ -87,6 +90,7 @@ class CameraHeartRateMonitor(private val context: Context) : HeartRateMonitor {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.KITKAT)
     @OptIn(ExperimentalGetImage::class)
     private fun processImage(image: ImageProxy, scope: ProducerScope<KSensorResponse<SensorData.HeartRate>>) {
         try {
