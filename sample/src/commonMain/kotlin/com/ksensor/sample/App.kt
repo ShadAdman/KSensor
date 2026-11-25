@@ -36,13 +36,13 @@ import com.ksensor.plugins.sensors.positioning.createPositioningPlugin
 import com.ksensor.plugins.sensors.motion.createMotionPlugin
 import com.ksensor.plugins.sensors.health.createHealthPlugin
 import com.ksensor.plugins.sensors.environment.createEnvironmentPlugin
+import com.ksensor.plugins.sensors.fused.FusedSensorPlugin
 import com.ksensor.plugins.states.bluetooth.createBluetoothPlugin
 import com.ksensor.plugins.states.system.createSystemPlugin
 import com.ksensor.sample.diagnostics.DiagnosticsSample
 import com.ksensor.plugins.states.network.createNetworkPlugin
 import com.ksensor.plugins.sensors.interaction.createInteractionPlugin
 import com.ksensor.plugins.states.lifecycle.createLifecyclePlugin
-import com.ksensor.plugins.sensors.
 import com.ksensor.plugins.sensors.fused.createFusedSensorPlugin
 
 sealed class Screen {
